@@ -78,22 +78,24 @@ O(n) og Ω(n) = Θ(n) da man må uansett gå igjennom alle elementene i lista og
 Fra asymptotisk analyse telles ikke konstante faktorer med, så if- og else-setningene i funksjonen ovenfor påvirker bare konstantene c1 og c2""")
 
 """
-Oppgave 1-3. Legg inn tidsmåling i programmet, og prøvekjør med tallrekker av ulik lengde. Se om tidsmålingene stemmer med analysen i oppgave 1-2.
-Vær oppmerksom på at klokka i datamaskinen sannsynligvis har for lav oppløsning til å ta tiden på behandling av korte tallrekker. 
-Dette kan avhjelpes enten ved å bruke lengre tallrekker eller ved å behandle mange små tallrekker og dele den totale tiden med antall rekker. 
-Vær også oppmerksom på at for lange tallrekker gir problemer med tidsmålinger, de kan fylle opp minnet slik at operativsystemet skriver ut data til disk. 
-Det tar lang tid og fører til målinger som ikke er representative for algoritmen.
+Oppgave 1-3. 
 """
-
-def oppgave3():
-  total_lst = 422
-  lst_length = 522
-  lst = generate_random_lst(total_lst, lst_length)
+def timer_tracking(lst: list) -> float:
   t1 = timeit.default_timer()
   for i, val in enumerate(lst):
     get_highest_return(val)
   t2 = timeit.default_timer()
-  print(t2-t1)
+  return t1, t2
+
+def oppgave3():
+  """
+  Modifiser verdiene på total_lst og lst_length for å teste ulike tidsmålinger
+  """
+  total_lst = 422
+  lst_length = 522
+  lst = generate_random_lst(total_lst, lst_length)
+  timer_tracking(lst)
+  
 
 def oppgave_chooser(number: int) -> None:
   match number:
