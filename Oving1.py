@@ -17,6 +17,9 @@ def get_random_int_lst(lst_length: int) -> list:
   return lst
 
 def generate_random_lst(total_lst: int, lst_length) -> list:
+  """
+  Unused
+  """
   lst = []
   for i in range(total_lst):
     lst.append(get_random_int_lst(lst_length=lst_length))
@@ -80,22 +83,19 @@ Fra asymptotisk analyse telles ikke konstante faktorer med, så if- og else-setn
 """
 Oppgave 1-3. 
 """
-def timer_tracking(lst: list) -> float:
+def timer_tracking(lst: list, rounds: int) -> float:
   t1 = timeit.default_timer()
-  for i, val in enumerate(lst):
-    get_highest_return(val)
+  for _ in range(rounds):
+    get_highest_return(lst)
   t2 = timeit.default_timer()
-  return t1, t2
+  return (t2-t1)/rounds
 
 def oppgave3():
-  """
-  Modifiser verdiene på total_lst og lst_length for å teste ulike tidsmålinger
-  """
-  total_lst = 422
-  lst_length = 522
-  lst = generate_random_lst(total_lst, lst_length)
-  timer_tracking(lst)
-  
+  n_values = [1000, 10000, 100000, 1000000, 10000000]
+  for n in n_values:
+    lst = get_random_int_lst(n)
+    time = timer_tracking(lst, 5)
+    print(f"n_value: {n}, time: {time}")
 
 def oppgave_chooser(number: int) -> None:
   match number:
