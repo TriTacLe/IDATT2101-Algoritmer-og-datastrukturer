@@ -1,8 +1,9 @@
 import random
 import timeit
 import matplotlib.pyplot as plt 
+
 """
-Helpers
+Helper
 """
 def get_random_int_lst(lst_length: int) -> list:
   """_summary_
@@ -16,27 +17,18 @@ def get_random_int_lst(lst_length: int) -> list:
     lst.append(random_numb)
   return lst
 
-def generate_random_lst(total_lst: int, lst_length) -> list:
-  """
-  Unused
-  """
-  lst = []
-  for i in range(total_lst):
-    lst.append(get_random_int_lst(lst_length=lst_length))
-  return lst
-
 """
 Oppgave 1-1
 """
-def get_highest_return(data: list) -> int | None:
+def get_highest_return(data: list):
   """Algoritme som finner hvilket kjøps- og salgstidspunkt som lønner seg best. 
   """
+  ## Tilordninger
   highest_return = 0
   entry_day = 0
-  sell_day = 0
+  sell_day = 1
   current_return = 0
   current_idx = 0
-
   for i, val in enumerate(data): ## Kjører n ganger
     # Reset return if negative (we do not want to start on minus)
     ## 1 sammenligning og 2 tilordninger
@@ -46,8 +38,8 @@ def get_highest_return(data: list) -> int | None:
     # Calculate return (avkastning)
     else:
       ## Addisjon + tilordning
-      current_return+=val 
-      
+      current_return+=  val 
+  
     # Save highest return
     ## 1 sammenligning og 3 tilordninger
     if current_return > highest_return: 
@@ -55,7 +47,7 @@ def get_highest_return(data: list) -> int | None:
       entry_day = current_idx
       sell_day = i+1
   ## Return operasjon
-  return highest_return, entry_day, sell_day
+  return highest_return, entry_day, sell_day 
 
 def oppgave1():
   # kursforandringer oppgitt i oppgaven
@@ -66,11 +58,11 @@ def oppgave1():
 
 """
 Oppgave 1-2. 
-Kommentarer i funksjon "oppgave1" relatert til denne oppgaven er markert med ##. Markerer alle operasjoner, til å med enkle.
+Kommentarer i funksjon "oppgave1" relatert til denne oppgaven er markert med ##. Markerer alle operasjoner, til å med enkle operasjoner.
 
 Løkka utføres n ganger (input størrelsen varierer og er ikke konstant) og går over alle elementene en gang. Det finnes derfor en konstant c1 slik at 0 <= f(n) <= c1*g(n) og f(n) er i O(n), g(n) = n
 Hver iterasjon gjør et konstant antall operasjoner uansett og hopper ikke over noen indekser i loopen. Dermed fins det en konstant c2 slik at 0 <= c*g(n) <= f(n) og f(n) er i Ω(n), g(n) = n
-O(n) og Ω(n) = Θ(n) da man må uansett gå igjennom alle elementene i lista og øvre og nedre grense er lineære. f(n) er i Θ(n)
+O(n) og Ω(n) = Θ(n) da man må uansett gå igjennom alle elementene i lista og øvre og nedre grense er begge lineære. f(n) er i Θ(n)
 Fra asymptotisk analyse telles ikke konstante faktorer med, så if- og else-setningene i funksjonen ovenfor påvirker bare konstantene c1 og c2.
 """
 
@@ -97,9 +89,9 @@ def oppgave3():
   time_values = []
   for n in n_values:
     lst = get_random_int_lst(n)
-    time = timer_tracking(lst, len(n_values))
-    time_values.append(time)
-    print(f"n_value: {n}, time: {time} seconds")
+    time_per_run = timer_tracking(lst, len(n_values))
+    time_values.append(time_per_run)
+    print(f"n_value: {n}, time: {time_per_run} seconds")
   
   # Plotting
   #plt.plot(time_values, n_values)
