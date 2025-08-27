@@ -56,21 +56,41 @@ float method1(int number, float value);
 float method2(int number, float value);
 typedef float (*FunctionPointer)(int, float);
 
+double timing(void)
+{
+  struct timespec time_spec;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &time_spec);
+  return (double)time_spec.tv_sec + (double)time_spec.tv_nsec * 1e-9;
+}
+
 void time_tracking(FunctionPointer methodx)
 {
-  int n_values[] = {10, 100, 1000, 10000, 100000, 1000000};
+  int n_values[] = {10, 100, 1000, 10000, 100000};
   int length_n_values = sizeof n_values / sizeof n_values[0];
-  for (int i = 0; i < length_n_values - 1; i++)
+  for (int i = 0; i < length_n_values; i++)
   {
     int n = n_values[i];
     float x = 10;
-    clock_t begin = clock();
-    float m2 = methodx(n, x);
-    clock_t end = clock();
-    double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-    printf("n = %d, x = %f, n * x: %f, tidsmåling: %f\n", n, x, m2, time_spent);
+    if (methodx == method1 && n > 50000)
+    {
+      // Skipping huge number for method1 to avoid segmentation fault (because its linear), you get stack overflow
+      continue;
+    }
+    int repetitions = (methodx == method2) ? 1000000 : 5;
+    float result;
+    double start = timing();
+    for (int j = 0; j < repetitions; j++)
+    {
+      result = methodx(n, x);
+    }
+    double end = timing();
+    double time_spent = (end - start) / repetitions;
+    printf("n = %d, x = %.1f, result: %.1f, snitt: %.15fs (%.0fns)\n",
+           n, x, result, time_spent, time_spent * 1e9);
   }
 }
+
+void method_testing(FunctionPointer methodx) {}
 
 int main(void)
 {

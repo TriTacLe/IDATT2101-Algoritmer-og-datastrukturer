@@ -2,16 +2,13 @@
   "configurations": [
     {
       "name": "macos-clang-x64",
-      "includePath": [
-        "${workspaceFolder}/**"
-      ],
+      "includePath": ["${workspaceFolder}/**"],
       "compilerPath": "/usr/bin/clang",
-      "cStandard": "${default}",
+      //"cStandard": "${default}",
+      "cStandard": "c17",
       "cppStandard": "${default}",
-      "intelliSenseMode": "macos-clang-x64",
-      "compilerArgs": [
-        ""
-      ]
+      "intelliSenseMode": "macos-clang-x64"
+      // "compilerArgs": [""]
     }
   ],
   "version": 4
