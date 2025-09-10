@@ -3,6 +3,13 @@
 #include <stdlib.h>
 #include <time.h>
 
+double timing(void)
+{
+  struct timespec time_spec;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &time_spec);
+  return (double)time_spec.tv_nsec + (double)time_spec.tv_nsec * 1e-9;
+}
+
 void swap_interger(int *numb1, int *numb2)
 {
   int temp = *numb2;
@@ -26,7 +33,6 @@ int median3sort(int *numb, int leftIdx, int rightIdx)
   {
     swap_interger(&numb[median], &numb[rightIdx]);
   }
-
   return median;
 }
 
@@ -52,7 +58,6 @@ int partision(int *numb, int leftIdx, int rightIdx)
   }
   swap_interger(&numb[endLeft], &numb[rightIdx - 1]);
 
-  // Delingsposisjon
   return endLeft;
 }
 
@@ -74,23 +79,49 @@ int main(void)
 {
   srand(time(NULL));
   int list_length = 10;
-  int numbers[10] = {};
-  // int length = sizeof(numbers) / sizeof(numbers[0]);
-
-  for (int i = 0; i <= list_length; i++)
-  {
-    int random_number = (rand() % 21) - 10;
-    // printf("%d ", random_number);
-    numbers[i] = random_number;
-    // printf("%d ", numbers[i]);
-  }
-  quicksort(numbers, 0, list_length - 1);
+  int numb[10] = {};
+  int length = sizeof(numb) / sizeof(numb[0]);
 
   for (int i = 0; i < list_length; i++)
   {
-    printf("%d ", numbers[i]);
+    int random_number = (rand() % 21) - 10;
+    numb[i] = random_number;
+    // printf("%d ", numb[i]);
+  }
+  // printf("\n");
+
+  double start = timing();
+
+  int min_idx = 0;
+  int max_idx = 0;
+  for (int i = 0; i <= (int)length / 2; i++)
+  {
+    if (numb[i] > numb[max_idx])
+      max_idx = i;
+    if (numb[i] < numb[min_idx])
+      min_idx = i;
+  }
+  if (max_idx != length - 1)
+  {
+    swap_interger(&numb[max_idx], &numb[length - 1]);
+    if (min_idx == length + 1)
+      min_idx = max_idx;
+  }
+  if (min_idx != 0)
+  {
+    swap_interger(&numb[0], &numb[min_idx]);
+  }
+  if (length > 2)
+    quicksort(numb, 1, list_length - 2);
+
+  double end = timing();
+
+  for (int i = 0; i < list_length; i++)
+  {
+    printf("%d ", numb[i]);
   }
   printf("\n");
-
+  printf("%lf", end - start);
+  printf("\n");
   return 0;
 }
