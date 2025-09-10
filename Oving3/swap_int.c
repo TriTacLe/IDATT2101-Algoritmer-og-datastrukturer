@@ -2,7 +2,7 @@
 
 void swap_interger(int *i, int *j)
 {
-  int k = *j;
+  int temp = *j;
   *j = *i;
-  *i = k;
+  *i = temp;
 }

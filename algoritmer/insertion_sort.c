@@ -25,6 +25,5 @@ int main()
   {
     printf("%d", numbs[i]);
   }
-
   return 0;
 }
