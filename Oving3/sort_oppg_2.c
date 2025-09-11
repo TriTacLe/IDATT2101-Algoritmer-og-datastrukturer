@@ -217,7 +217,7 @@ int *createTable42(int size, int lowerBound, int upperBound)
 {
   int *table = malloc(size * sizeof(int));
   for (int i = 0; i < size; i++)
-    table[i] = (i & 1) ? 42 : rand() + (upperBound - lowerBound + 1) + lowerBound;
+    table[i] = (i & 1) ? 42 : lowerBound + rand() % (upperBound - lowerBound + 1);
   return table;
 }
 
@@ -225,8 +225,17 @@ int getSumTable(int *table, int size)
 {
   if (size == 0)
     return 0;
+  int sum = 0;
+  for (int i = 0; i < size; i++)
+  {
+    sum += table[i];
+  }
+  return sum;
+  // recursion
+  /*
 
   return table[size - 1] + getSumTable(table, size - 1);
+  */
 }
 
 void testSumTable(int *tableBefore, int *tableAfter, int size)
@@ -246,19 +255,44 @@ void timeTrackAlt42(int size)
 {
   printf("\n");
   printf("--- 42 alt dups\n");
-  int *tableAlt42 = createTable42(size, -40, 40);
+  int *newTableAlt42 = createTable42(size, -40, 40);
+  int *tableAlt42_1 = malloc(size * sizeof *tableAlt42_1);
+  int *tableAlt42_2 = malloc(size * sizeof *tableAlt42_2);
+  memcpy(tableAlt42_1, newTableAlt42, size * sizeof *tableAlt42_1);
+  memcpy(tableAlt42_2, newTableAlt42, size * sizeof *tableAlt42_2);
   // Optimalisert quicksort
-  // Alt 42
-  for (int i = 0; i < size; i++)
-  {
-    printf("%d ", tableAlt42[i]);
-  }
   double startOpt42 = timing();
-  prepareForOptQuickSort(tableAlt42, size);
+  prepareForOptQuickSort(tableAlt42_1, size);
   double endOpt42 = timing();
+
+  double start42 = timing();
+  quicksort(tableAlt42_2, 0, size - 1);
+  double end42 = timing();
 
   int resultOpt42 = endOpt42 - startOpt42;
   printf("Quicksort optimzed, time: %d (ns)\n", resultOpt42);
+  printf("Quicksort normal  , time: %lf (ns)\n\n", end42 - start42);
+
+  // test
+  testSumTable(newTableAlt42, tableAlt42_1, size);
+  testTableOrder(tableAlt42_1, size);
+  testSumTable(newTableAlt42, tableAlt42_2, size);
+  testTableOrder(tableAlt42_2, size);
+
+  // Same process on already sorted table:
+  double startRedo42 = timing();
+  prepareForOptQuickSort(tableAlt42_1, size);
+  double endRedo42 = timing();
+  int resultRedo42 = endRedo42 - startRedo42;
+  // Test dups
+  printf("\nSorting a sorted table:\n");
+  printf("Quicksort optimized, time: %d (ns)\n\n", resultRedo42);
+
+  // Test om det tar dobbelt så lang tid:
+  (resultOpt42 * 2 > resultRedo42) ? printf("not n^2 problem for spread: %d, %d\n", resultOpt42, resultRedo42) : printf("n^2 problem for spread: %d, %d\n", resultOpt42, resultRedo42);
+  free(newTableAlt42);
+  free(tableAlt42_1);
+  free(tableAlt42_2);
 }
 
 void timeTrackDups(int size)
@@ -266,7 +300,7 @@ void timeTrackDups(int size)
   printf("\n");
   printf("---- Duplicates:\n");
   // init table
-  int *newTableDups = createTable(size, -9, 9);
+  int *newTableDups = createTable(size, -4, 2);
   int *tableDups1 = malloc(size * sizeof *tableDups1);
   int *tableDups2 = malloc(size * sizeof *tableDups2);
   memcpy(tableDups1, newTableDups, size * sizeof *tableDups1);
@@ -298,12 +332,14 @@ void timeTrackDups(int size)
   double endRedoOptDups = timing();
   int resultRedoOptDups = endRedoOptDups - startRedoOptDups;
 
+  printf("\nSorting a sorted table:\n");
   printf("Quicksort optimized, time: %d (ns)\n\n", resultRedoOptDups);
   // test and verify if n^2
   (resultOptDups * 2 > resultRedoOptDups) ? printf("not n^2 problem for dups: %d, %d\n", resultOptDups, resultRedoOptDups) : printf("n^2 problem for spread: %d, %d\n", resultOptDups, resultRedoOptDups);
   //
   free(tableDups1);
   free(tableDups2);
+  free(newTableDups);
 }
 
 void timeTrackSpread(int size)
@@ -345,25 +381,27 @@ void timeTrackSpread(int size)
   int resultRedoOptSpread = endRedoOptSpread - startRedoOptSpread;
   // Test dups
   printf("\nSorting a sorted table:\n");
-  printf("Quicksort optimized, time: %d (ns)\n", resultRedoOptSpread);
+  printf("Quicksort optimized, time: %d (ns)\n\n", resultRedoOptSpread);
 
   // Test om det tar dobbelt så lang tid:
-  (resultOptSpread * 2 > resultRedoOptSpread) ? printf("not n^2 problem for spread: %d, %d\n", resultOptSpread, resultRedoOptSpread) : printf("n^2 problem for spread: %d, %d\n", resultOptSpread, resultRedoOptSpread);
+  (resultOptSpread * 2 > resultRedoOptSpread) ? printf("not n^2 problem for spread: %d, %d\n", resultOptSpread, resultRedoOptSpread) : printf("n^2 is a problem for spread: %d, %d\n", resultOptSpread, resultRedoOptSpread);
   free(newTableSpread);
   free(tableSpread1);
+  free(tableSpread2);
 }
 
 void run()
 {
   srand(time(NULL));
-  const int size = 10000000; // n verdi
-
-  timeTrackSpread(size);
-  timeTrackDups(size);
-  timeTrackAlt42(size);
-
-  // Vanlig quicksort
-  // Spread
+  int n_values[] = {100000, 1000000, 10000000};
+  int size_n_values = sizeof(n_values) / sizeof n_values[0];
+  for (int i = 0; i < size_n_values; i++)
+  {
+    printf("\n ----- Test for n = %d -----", n_values[i]);
+    timeTrackSpread(n_values[i]);
+    timeTrackDups(n_values[i]);
+    timeTrackAlt42(n_values[i]);
+  }
 }
 
 // MAIN
