@@ -103,7 +103,7 @@ void quicksort(int *numb, int leftIdx, int rightIdx)
   }
 }
 
-void quicksort_optimalized(int *numb, int leftIdx, int rightIdx, int upper_bound, int lower_bound)
+void quicksort_optimalized(int *numb, int leftIdx, int rightIdx, int lower_bound, int upper_bound)
 {
   if (rightIdx - leftIdx > 2)
   {
@@ -112,31 +112,31 @@ void quicksort_optimalized(int *numb, int leftIdx, int rightIdx, int upper_bound
 
     // Tabell 1 (Nedre)
     int interval_left = pivot_idx - leftIdx;
-    int range_left = pivot_value - lower_bound;
+    int range_left = pivot_value - lower_bound + 1;
     if (interval_left > 0)
     {
       if (range_left < interval_left)
       {
-        counting_sort(&numb[leftIdx], interval_left, lower_bound, pivot_value - 1);
+        counting_sort(&numb[leftIdx], interval_left, lower_bound, pivot_value);
       }
       else
       {
-        quicksort_optimalized(numb, leftIdx, pivot_idx - 1, pivot_value - 1, lower_bound);
+        quicksort_optimalized(numb, leftIdx, pivot_idx - 1, lower_bound, pivot_value);
       }
     }
 
     // Tabell 2 (Ovre)
     int interval_right = rightIdx - pivot_idx;
-    int range_right = upper_bound - pivot_value;
+    int range_right = upper_bound - pivot_value + 1;
     if (interval_right > 0)
     {
       if (range_right < interval_right)
       {
-        counting_sort(&numb[pivot_idx + 1], interval_right, pivot_value + 1, upper_bound);
+        counting_sort(&numb[pivot_idx + 1], interval_right, pivot_value, upper_bound);
       }
       else
       {
-        quicksort_optimalized(numb, pivot_idx + 1, rightIdx, upper_bound, pivot_value + 1);
+        quicksort_optimalized(numb, pivot_idx + 1, rightIdx, pivot_value, upper_bound);
       }
     }
   }
@@ -189,13 +189,13 @@ void beforeOpsQuickSort(int *numb, int size)
   if (size > 2)
   {
     // Start quicksort
-    quicksort_optimalized(numb, 1, size - 2, max_value, min_value);
+    quicksort_optimalized(numb, 1, size - 2, min_value, max_value);
   }
 }
 
 void testTableOrder(int *table, int size)
 {
-  for (int i = 0; i < size; i++)
+  for (int i = 1; i < size; i++)
   {
     if (table[i] < table[i - 1])
     {
@@ -218,8 +218,8 @@ void testSumTable(int *tableBefore, int *tableAfter, int size)
 {
   int sumBefore = getSumTable(tableBefore, size);
   int sumAfter = getSumTable(tableAfter, size);
-  printf("%d\n", sumAfter);
-  printf("%d\n", sumBefore);
+  // printf("%d\n", sumAfter);
+  // printf("%d\n", sumBefore);
   if (sumAfter != sumBefore)
   {
     printf("Test sum failed\n");
@@ -233,10 +233,10 @@ void testSumTable(int *tableBefore, int *tableAfter, int size)
 void run()
 {
   srand(time(NULL));
-  const int size = 100; // n verdi
+  const int size = 10000000; // n verdi
   int *newTableSpread = createTable(size, -1000, 1000);
   int *tableSpread1 = malloc(size * sizeof *tableSpread1);
-  int *tableSpread2 = malloc(size * sizeof *tableSpread1);
+  int *tableSpread2 = malloc(size * sizeof *tableSpread2);
   memcpy(tableSpread1, newTableSpread, size * sizeof *tableSpread1);
   memcpy(tableSpread2, newTableSpread, size * sizeof *tableSpread2);
 
@@ -247,43 +247,45 @@ void run()
   memcpy(tableDups2, newTableDups, size * sizeof *tableDups2);
 
   // Optimalisert quicksort
+  // Spread
   double startOps1 = timing();
-  // Finn max og min før sorteringen begynner
   beforeOpsQuickSort(tableSpread1, size);
   double endOps1 = timing();
-
-  // Vanlig quicksort
-  double startV1 = timing();
-  quicksort(tableSpread1, 0, size - 1);
-  double endV1 = timing();
-
+  // Duplicates
   double startOps2 = timing();
-  // Finn max og min før sorteringen begynner
   beforeOpsQuickSort(tableDups1, size);
   double endOps2 = timing();
 
   // Vanlig quicksort
+  // Spread
+  double startV1 = timing();
+  quicksort(tableSpread2, 0, size - 1);
+  double endV1 = timing();
+  // Dups
   double startV2 = timing();
   quicksort(tableDups2, 0, size - 1);
   double endV2 = timing();
-  // Print sorterte tabellen
 
+  // Print sorterte tabellen
+  /*
   printf("Sorterte tabell spredning:\n");
   for (int i = 0; i < size; i++)
   {
-    printf("%d ", tableDups1[i]);
+    printf("%d ", tableSpread2[i]);
   }
+    */
   printf("\n");
 
   printf("Spredning:\n");
   printf("Quicksort optimisert, tid: %lf (ns)\n", endOps1 - startOps1);
-  printf("Quicksort vanlig, tid: %lf (ns)\n\n", endV1 - startV1);
+  printf("Quicksort vanlig    , tid: %lf (ns)\n\n", endV1 - startV1);
 
   printf("Duplicates:\n");
   printf("Quicksort optimisert, tid: %lf (ns)\n", endOps2 - startOps2);
-  printf("Quicksort vanlig, tid: %lf (ns)\n", endV2 - startV2);
+  printf("Quicksort vanlig    , tid: %lf (ns)\n", endV2 - startV2);
 
   // Test dups
+
   testSumTable(newTableDups, tableDups1, size);
   testTableOrder(tableDups1, size);
   testSumTable(newTableDups, tableDups2, size);
@@ -293,7 +295,15 @@ void run()
   testSumTable(newTableSpread, tableSpread1, size);
   testTableOrder(tableSpread1, size);
   testSumTable(newTableSpread, tableSpread2, size);
+
   testTableOrder(tableSpread2, size);
+
+  free(newTableSpread);
+  free(tableSpread1);
+  free(tableSpread2);
+  free(newTableDups);
+  free(tableDups1);
+  free(tableDups2);
 }
 
 // MAIN
