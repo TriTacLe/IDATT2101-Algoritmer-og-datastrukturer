@@ -158,7 +158,7 @@ int *createTable(int size, int lowerBound, int upperBound)
   return table;
 }
 
-void beforeOpsQuickSort(int *numb, int size)
+void prepareForOptQuickSort(int *numb, int size)
 {
   int min_idx = 0, max_idx = 0;
   int max_value = numb[0], min_value = numb[0];
@@ -221,13 +221,9 @@ void testSumTable(int *tableBefore, int *tableAfter, int size)
   // printf("%d\n", sumAfter);
   // printf("%d\n", sumBefore);
   if (sumAfter != sumBefore)
-  {
     printf("Test sum failed\n");
-  }
   else
-  {
     printf("Test: sum: success\n");
-  }
 }
 
 void run()
@@ -248,13 +244,14 @@ void run()
 
   // Optimalisert quicksort
   // Spread
-  double startOps1 = timing();
-  beforeOpsQuickSort(tableSpread1, size);
-  double endOps1 = timing();
+  double startOpt1 = timing();
+  prepareForOptQuickSort(tableSpread1, size);
+  double endOpt1 = timing();
+  int resultOptSpread = endOpt1 - startOpt1;
   // Duplicates
-  double startOps2 = timing();
-  beforeOpsQuickSort(tableDups1, size);
-  double endOps2 = timing();
+  double startOpt2 = timing();
+  prepareForOptQuickSort(tableDups1, size);
+  double endOpt2 = timing();
 
   // Vanlig quicksort
   // Spread
@@ -265,24 +262,17 @@ void run()
   double startV2 = timing();
   quicksort(tableDups2, 0, size - 1);
   double endV2 = timing();
+  int resultOptDups = endOpt2 - startOpt2;
 
-  // Print sorterte tabellen
-  /*
-  printf("Sorterte tabell spredning:\n");
-  for (int i = 0; i < size; i++)
-  {
-    printf("%d ", tableSpread2[i]);
-  }
-    */
   printf("\n");
 
-  printf("Spredning:\n");
-  printf("Quicksort optimisert, tid: %lf (ns)\n", endOps1 - startOps1);
-  printf("Quicksort vanlig    , tid: %lf (ns)\n\n", endV1 - startV1);
+  printf("Spread:\n");
+  printf("Quicksort optimized, time: %d (ns)\n", resultOptSpread);
+  printf("Quicksort normal   , time: %lf (ns)\n\n", endV1 - startV1);
 
   printf("Duplicates:\n");
-  printf("Quicksort optimisert, tid: %lf (ns)\n", endOps2 - startOps2);
-  printf("Quicksort vanlig    , tid: %lf (ns)\n", endV2 - startV2);
+  printf("Quicksort optimzed, time: %d (ns)\n", resultOptDups);
+  printf("Quicksort normal  , time: %lf (ns)\n\n", endV2 - startV2);
 
   // Test dups
 
@@ -297,6 +287,27 @@ void run()
   testSumTable(newTableSpread, tableSpread2, size);
 
   testTableOrder(tableSpread2, size);
+
+  // Same process on already sorted table:
+  double startRedoOptSpread = timing();
+  prepareForOptQuickSort(tableSpread1, size);
+  double endRedoOptSpread = timing();
+  int resultRedoOptSpread = endRedoOptSpread - startRedoOptSpread;
+  // Duplicates
+  double startRedoOptDups = timing();
+  prepareForOptQuickSort(tableDups1, size);
+  double endRedoOptDups = timing();
+  int resultRedoOptDups = endRedoOptDups - startRedoOptDups;
+
+  printf("\nSorting a sorted table:\n");
+  printf("Spread:\n");
+  printf("Quicksort optimized, time: %d (ns)\n", resultRedoOptSpread);
+  printf("Duplicates:\n");
+  printf("Quicksort optimized, time: %d (ns)\n\n", resultRedoOptDups);
+
+  // Test om det tar dobbelt så lang tid:
+  (resultOptSpread * 2 > resultRedoOptSpread) ? printf("not n^2 problem for spread: %d, %d\n", resultOptSpread, resultRedoOptSpread) : printf("n^2 problem for spread: %d, %d\n", resultOptSpread, resultRedoOptSpread);
+  (resultOptDups * 2 > resultRedoOptDups) ? printf("not n^2 problem for dups: %d, %d\n", resultOptDups, resultRedoOptDups) : printf("n^2 problem for spread: %d, %d\n", resultOptSpread, resultRedoOptSpread);
 
   free(newTableSpread);
   free(tableSpread1);
