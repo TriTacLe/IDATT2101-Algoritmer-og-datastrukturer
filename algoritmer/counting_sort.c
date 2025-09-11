@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-void count_sort(int numb1, int inn[numb1], int out[numb1], int numb2)
+void counting_sort(int numb1, int inn[numb1], int out[numb1], int numb2)
 {
   int i;
   int ht[numb2 + 1];

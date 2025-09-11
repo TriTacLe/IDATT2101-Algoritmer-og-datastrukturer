@@ -60,6 +60,30 @@ int partision(int *numb, int leftIdx, int rightIdx)
 
   return endLeft;
 }
+void counting_sort(int in[], int length)
+{
+  int max = 0;
+  for (int i = 0; i < length; i++)
+    if (in[i] > max)
+      max = in[i];
+
+  int *count = (int *)calloc(max + 1, sizeof(int));
+
+  for (int i = 0; i < length; i++)
+    count[in[i]]++;
+
+  for (int i = 1; i <= max; i++)
+    count[i] += count[i - 1];
+
+  int *out = (int *)malloc(length * sizeof(int));
+  for (int i = length - 1; i >= 0; i--)
+  {
+    out[count[in[i]] - 1] = in[i];
+    count[in[i]]--;
+  }
+  for (int i = 0; i < length; i++)
+    in[i] = out[i];
+}
 
 void quicksort(int *numb, int leftIdx, int rightIdx)
 {
@@ -82,6 +106,7 @@ int main(void)
   int list_length = 10;
   int numb[10] = {};
   int numb2[10] = {};
+  int numb3[10] = {};
   int length = sizeof(numb) / sizeof(numb[0]);
 
   for (int i = 0; i < list_length; i++)
@@ -126,6 +151,11 @@ int main(void)
   quicksort(numb2, 0, list_length - 1);
   double endV = timing();
 
+  // Tellesortering
+  double startT = timing();
+  counting_sort(numb3, length);
+  double endT = timing();
+
   for (int i = 0; i < list_length; i++)
   {
     printf("%d ", numb[i]);
@@ -135,6 +165,7 @@ int main(void)
   printf("Quicksort optimisert, tid: %lf (ns)", end - start);
   printf("\n");
   printf("Quicksort vanlig, tid: %lf (ns)", endV - startV);
-
+  printf("\n");
+  printf("Tellesort, tid: %lf (ns)", endT - startT);
   return 0;
 }
