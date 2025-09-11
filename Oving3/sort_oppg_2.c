@@ -61,6 +61,7 @@ int partision(int *numb, int leftIdx, int rightIdx)
 
   return endLeft;
 }
+
 void counting_sort(int *in, int length, int lower_bound, int upper_bound)
 {
   int range = upper_bound - lower_bound + 1;
@@ -87,6 +88,7 @@ void counting_sort(int *in, int length, int lower_bound, int upper_bound)
   free(count);
   free(out);
 }
+
 void quicksort(int *numb, int leftIdx, int rightIdx)
 {
   if (rightIdx - leftIdx > 2)
@@ -144,7 +146,7 @@ void quicksort_optimalized(int *numb, int leftIdx, int rightIdx, int upper_bound
   }
 }
 
-int *createTable(int size, int upperBound, int lowerBound)
+int *createTable(int size, int lowerBound, int upperBound)
 {
   //
   int *table = (int *)malloc(size * sizeof(int));
@@ -191,10 +193,47 @@ void beforeOpsQuickSort(int *numb, int size)
   }
 }
 
+void testTableOrder(int *table, int size)
+{
+  for (int i = 0; i < size; i++)
+  {
+    if (table[i] < table[i - 1])
+    {
+      printf("Test: table[i] >= table[i-1]: failed\n");
+      return;
+    }
+  }
+  printf("Test: table[i] >= table[i-1]: success\n");
+}
+
+int getSumTable(int *table, int size)
+{
+  if (size == 0)
+    return 0;
+
+  return table[size - 1] + getSumTable(table, size - 1);
+}
+
+void testSumTable(int *tableBefore, int *tableAfter, int size)
+{
+  int sumBefore = getSumTable(tableBefore, size);
+  int sumAfter = getSumTable(tableAfter, size);
+  printf("%d\n", sumAfter);
+  printf("%d\n", sumBefore);
+  if (sumAfter != sumBefore)
+  {
+    printf("Test sum failed\n");
+  }
+  else
+  {
+    printf("Test: sum: success\n");
+  }
+}
+
 void run()
 {
   srand(time(NULL));
-  const int size = 10000; // n verdi
+  const int size = 100; // n verdi
   int *newTableSpread = createTable(size, -1000, 1000);
   int *tableSpread1 = malloc(size * sizeof *tableSpread1);
   int *tableSpread2 = malloc(size * sizeof *tableSpread1);
@@ -208,29 +247,53 @@ void run()
   memcpy(tableDups2, newTableDups, size * sizeof *tableDups2);
 
   // Optimalisert quicksort
-  double startOps = timing();
+  double startOps1 = timing();
   // Finn max og min før sorteringen begynner
   beforeOpsQuickSort(tableSpread1, size);
-  double endOps = timing();
+  double endOps1 = timing();
 
   // Vanlig quicksort
-  double startV = timing();
+  double startV1 = timing();
   quicksort(tableSpread1, 0, size - 1);
-  double endV = timing();
+  double endV1 = timing();
 
+  double startOps2 = timing();
+  // Finn max og min før sorteringen begynner
+  beforeOpsQuickSort(tableDups1, size);
+  double endOps2 = timing();
+
+  // Vanlig quicksort
+  double startV2 = timing();
+  quicksort(tableDups2, 0, size - 1);
+  double endV2 = timing();
   // Print sorterte tabellen
-  /*
-  printf("Sorterte tabell:\n");
+
+  printf("Sorterte tabell spredning:\n");
   for (int i = 0; i < size; i++)
   {
-    printf("%d ", newTableSpread[i]);
+    printf("%d ", tableDups1[i]);
   }
   printf("\n");
-  */
-  printf("Quicksort optimisert med tabell med spredning, tid: %lf (ns)", endOps - startOps);
-  printf("\n");
-  printf("Quicksort vanlig med tabell med spredning, tid: %lf (ns)", endV - startV);
-  printf("\n");
+
+  printf("Spredning:\n");
+  printf("Quicksort optimisert, tid: %lf (ns)\n", endOps1 - startOps1);
+  printf("Quicksort vanlig, tid: %lf (ns)\n\n", endV1 - startV1);
+
+  printf("Duplicates:\n");
+  printf("Quicksort optimisert, tid: %lf (ns)\n", endOps2 - startOps2);
+  printf("Quicksort vanlig, tid: %lf (ns)\n", endV2 - startV2);
+
+  // Test dups
+  testSumTable(newTableDups, tableDups1, size);
+  testTableOrder(tableDups1, size);
+  testSumTable(newTableDups, tableDups2, size);
+  testTableOrder(tableDups2, size);
+
+  // Test spread
+  testSumTable(newTableSpread, tableSpread1, size);
+  testTableOrder(tableSpread1, size);
+  testSumTable(newTableSpread, tableSpread2, size);
+  testTableOrder(tableSpread2, size);
 }
 
 // MAIN
