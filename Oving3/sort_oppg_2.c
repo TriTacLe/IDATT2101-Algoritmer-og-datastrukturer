@@ -1,7 +1,8 @@
-// Hvis intervallet til deltabellen spenner et mindre området enn størrelsen/lengden til deltabellen kan den sorteres kjapt med tellesortering
+// Valgte oppgave 2
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 double timing(void)
 {
@@ -60,31 +61,32 @@ int partision(int *numb, int leftIdx, int rightIdx)
 
   return endLeft;
 }
-void counting_sort(int in[], int length)
+void counting_sort(int *in, int length, int lower_bound, int upper_bound)
 {
-  int max = 0;
-  for (int i = 0; i < length; i++)
-    if (in[i] > max)
-      max = in[i];
+  int range = upper_bound - lower_bound + 1;
 
-  int *count = (int *)calloc(max + 1, sizeof(int));
+  int *count = (int *)calloc(range, sizeof(int));
 
   for (int i = 0; i < length; i++)
-    count[in[i]]++;
+    count[in[i] - lower_bound]++;
 
-  for (int i = 1; i <= max; i++)
+  for (int i = 1; i < range; i++)
     count[i] += count[i - 1];
 
   int *out = (int *)malloc(length * sizeof(int));
-  for (int i = length - 1; i >= 0; i--)
+
+  for (int i = length - 1; i >= 0; --i)
   {
-    out[count[in[i]] - 1] = in[i];
-    count[in[i]]--;
+    int idx = in[i] - lower_bound;
+    out[--count[idx]] = in[i];
   }
+
   for (int i = 0; i < length; i++)
     in[i] = out[i];
-}
 
+  free(count);
+  free(out);
+}
 void quicksort(int *numb, int leftIdx, int rightIdx)
 {
   if (rightIdx - leftIdx > 2)
@@ -99,73 +101,142 @@ void quicksort(int *numb, int leftIdx, int rightIdx)
   }
 }
 
-int main(void)
+void quicksort_optimalized(int *numb, int leftIdx, int rightIdx, int upper_bound, int lower_bound)
 {
-  srand(time(NULL));
-
-  int list_length = 10;
-  int numb[10] = {};
-  int numb2[10] = {};
-  int numb3[10] = {};
-  int length = sizeof(numb) / sizeof(numb[0]);
-
-  for (int i = 0; i < list_length; i++)
+  if (rightIdx - leftIdx > 2)
   {
-    int random_number = (rand() % 21) - 10;
-    numb[i] = random_number;
-    numb2[i] = random_number;
-    // printf("%d ", numb[i]);
+    int pivot_idx = partision(numb, leftIdx, rightIdx);
+    int pivot_value = numb[pivot_idx];
+
+    // Tabell 1 (Nedre)
+    int interval_left = pivot_idx - leftIdx;
+    int range_left = pivot_value - lower_bound;
+    if (interval_left > 0)
+    {
+      if (range_left < interval_left)
+      {
+        counting_sort(&numb[leftIdx], interval_left, lower_bound, pivot_value - 1);
+      }
+      else
+      {
+        quicksort_optimalized(numb, leftIdx, pivot_idx - 1, pivot_value - 1, lower_bound);
+      }
+    }
+
+    // Tabell 2 (Ovre)
+    int interval_right = rightIdx - pivot_idx;
+    int range_right = upper_bound - pivot_value;
+    if (interval_right > 0)
+    {
+      if (range_right < interval_right)
+      {
+        counting_sort(&numb[pivot_idx + 1], interval_right, pivot_value + 1, upper_bound);
+      }
+      else
+      {
+        quicksort_optimalized(numb, pivot_idx + 1, rightIdx, upper_bound, pivot_value + 1);
+      }
+    }
   }
-  // printf("\n");
+  else
+  {
+    median3sort(numb, leftIdx, rightIdx);
+  }
+}
 
-  // Optimalisert quicksort
-  double start = timing();
+int *createTable(int size, int upperBound, int lowerBound)
+{
+  //
+  int *table = (int *)malloc(size * sizeof(int));
+  for (int i = 0; i < size; i++)
+  {
+    int random_number = rand() % (upperBound - (lowerBound) + 1) + (lowerBound);
+    table[i] = random_number;
+  }
+  return table;
+}
 
-  // Finn max og min før sorteringen begynner
+void beforeOpsQuickSort(int *numb, int size)
+{
   int min_idx = 0, max_idx = 0;
-  for (int i = 0; i < length; i++)
+  int max_value = numb[0], min_value = numb[0];
+  for (int i = 0; i < size; i++)
   {
     if (numb[i] > numb[max_idx])
+    {
       max_idx = i;
+      max_value = numb[i];
+    }
+
     if (numb[i] < numb[min_idx])
+    {
       min_idx = i;
+      min_value = numb[i];
+    }
   }
-  if (max_idx != length - 1)
+  if (max_idx != size - 1)
   {
-    swap_interger(&numb[max_idx], &numb[length - 1]);
-    if (min_idx == length - 1)
+    swap_interger(&numb[max_idx], &numb[size - 1]);
+    if (min_idx == size - 1)
       min_idx = max_idx;
   }
   if (min_idx != 0)
   {
     swap_interger(&numb[0], &numb[min_idx]);
   }
-  if (length > 2)
+  if (size > 2)
+  {
     // Start quicksort
-    quicksort(numb, 1, list_length - 2);
+    quicksort_optimalized(numb, 1, size - 2, max_value, min_value);
+  }
+}
 
-  double end = timing();
+void run()
+{
+  srand(time(NULL));
+  const int size = 10000; // n verdi
+  int *newTableSpread = createTable(size, -1000, 1000);
+  int *tableSpread1 = malloc(size * sizeof *tableSpread1);
+  int *tableSpread2 = malloc(size * sizeof *tableSpread1);
+  memcpy(tableSpread1, newTableSpread, size * sizeof *tableSpread1);
+  memcpy(tableSpread2, newTableSpread, size * sizeof *tableSpread2);
+
+  int *newTableDups = createTable(size, -9, 9);
+  int *tableDups1 = malloc(size * sizeof *tableDups1);
+  int *tableDups2 = malloc(size * sizeof *tableDups2);
+  memcpy(tableDups1, newTableDups, size * sizeof *tableDups1);
+  memcpy(tableDups2, newTableDups, size * sizeof *tableDups2);
+
+  // Optimalisert quicksort
+  double startOps = timing();
+  // Finn max og min før sorteringen begynner
+  beforeOpsQuickSort(tableSpread1, size);
+  double endOps = timing();
 
   // Vanlig quicksort
   double startV = timing();
-  quicksort(numb2, 0, list_length - 1);
+  quicksort(tableSpread1, 0, size - 1);
   double endV = timing();
 
-  // Tellesortering
-  double startT = timing();
-  counting_sort(numb3, length);
-  double endT = timing();
-
-  for (int i = 0; i < list_length; i++)
+  // Print sorterte tabellen
+  /*
+  printf("Sorterte tabell:\n");
+  for (int i = 0; i < size; i++)
   {
-    printf("%d ", numb[i]);
+    printf("%d ", newTableSpread[i]);
   }
+  printf("\n");
+  */
+  printf("Quicksort optimisert med tabell med spredning, tid: %lf (ns)", endOps - startOps);
+  printf("\n");
+  printf("Quicksort vanlig med tabell med spredning, tid: %lf (ns)", endV - startV);
+  printf("\n");
+}
 
-  printf("\n");
-  printf("Quicksort optimisert, tid: %lf (ns)", end - start);
-  printf("\n");
-  printf("Quicksort vanlig, tid: %lf (ns)", endV - startV);
-  printf("\n");
-  printf("Tellesort, tid: %lf (ns)", endT - startT);
+// MAIN
+
+int main(void)
+{
+  run();
   return 0;
 }

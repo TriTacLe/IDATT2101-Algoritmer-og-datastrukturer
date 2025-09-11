@@ -38,7 +38,10 @@
   "C_Cpp_Runner.compilerArgs": [],
   "C_Cpp_Runner.linkerArgs": [],
   "C_Cpp_Runner.includePaths": [],
-  "C_Cpp_Runner.includeSearch": ["*", "**/*"],
+  "C_Cpp_Runner.includeSearch": [
+    "*",
+    "**/*"
+  ],
   "C_Cpp_Runner.excludeSearch": [
     "**/build",
     "**/build/**",
@@ -60,7 +63,8 @@
     "random": "c",
     "ratio": "c",
     "algorithm": "c",
-    "numbers": "c"
+    "numbers": "c",
+    "semaphore": "c"
   },
   "C_Cpp.errorSquiggles": "enabled"
 }
