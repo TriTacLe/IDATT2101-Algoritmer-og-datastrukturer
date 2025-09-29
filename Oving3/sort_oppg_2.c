@@ -390,7 +390,9 @@ void timeTrackSpread(int size)
   free(tableSpread2);
 }
 
-void run()
+// MAIN
+
+int main(void)
 {
   srand(time(NULL));
   int n_values[] = {100000, 1000000, 10000000};
@@ -402,12 +404,5 @@ void run()
     timeTrackDups(n_values[i]);
     timeTrackAlt42(n_values[i]);
   }
-}
-
-// MAIN
-
-int main(void)
-{
-  run();
   return 0;
 }
