@@ -3,13 +3,11 @@
 #include <string.h>
 #include <math.h>
 
-#define MAX_NAME 256 //
-
 // Linked list
 typedef struct Node
 {
   char *key;
-  int value; // CSV row
+  int value; // row i navn.txt
   struct Node *next;
 } Node;
 
@@ -20,7 +18,7 @@ typedef struct HashTable
   Node **array;
 } HashTable;
 
-size_t hashFunction(const struct HashTable *hash_table, const char *name) // Name is the key
+size_t hashFunction(HashTable *hash_table, const char *name)
 {
   int hash_value = 0;
   for (size_t i = 0; name[i] != '\0'; i++)
@@ -31,7 +29,7 @@ size_t hashFunction(const struct HashTable *hash_table, const char *name) // Nam
 }
 
 // insert a key (whole name) -value (row position in the .txt file)
-void insertHashTable(HashTable *hash_table, const char *key, int value, int *total_collisions)
+void insertHashTable(HashTable *hash_table, char *key, int value, int *total_collisions)
 {
   size_t index = hashFunction(hash_table, key);
   Node *head = hash_table->array[index];
@@ -57,12 +55,13 @@ void insertHashTable(HashTable *hash_table, const char *key, int value, int *tot
 }
 
 // returns pointer to the value in key-value
-int *searchHashTable(HashTable *hash_table, const char *key, int *search_collision)
+int *searchHashTable(HashTable *hash_table, char *key, int *search_collision)
 {
   size_t index = hashFunction(hash_table, key);
   Node *p = hash_table->array[index];
   while (p)
   {
+    // strcmp (string compare) return 0 if both strings are identical
     if (strcmp(p->key, key) == 0)
     {
       return &p->value;
@@ -113,18 +112,19 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  char name_file[MAX_NAME];
+  char name_file[256];
   int total_elements = 0;
 
   while ((fgets(name_file, sizeof(name_file), fp)))
     total_elements++;
   rewind(fp);
 
-  // 1.3 times larger than the total elements and it should be a prime number.
+  // "1.3 times larger than the total elements and it should be a prime number." - stackoverflow
   int table_size = find_table_size(1.3 * total_elements);
 
   HashTable hash_table;
 
+  // ALmost like a constructor
   hash_table.buckets = table_size;
   hash_table.entries = 0;
   hash_table.array = (Node **)calloc(hash_table.buckets, sizeof(Node *));

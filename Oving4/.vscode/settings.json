@@ -77,6 +77,8 @@
     "__hash_table": "c",
     "unordered_map": "c",
     "unordered_set": "c",
-    "__split_buffer": "c"
+    "__split_buffer": "c",
+    "stdio.h": "c",
+    "__locale": "c"
   }
 }
