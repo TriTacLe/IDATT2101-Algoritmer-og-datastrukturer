@@ -5,8 +5,8 @@
 **/.DS_Store
 
 # For stor fil
-ø5Skandinavia.txt # 
-
+ø5Skandinavia.txt #
+ø5Skandinavia-navn.txt
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
