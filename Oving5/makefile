@@ -1,12 +1,13 @@
-CFLAGS = -std=c11 -Wall -Wextra -O2
-
 .PHONY: run clean
 
-ov5del1: ov5del1.c
-	cc ov5del1.c -o ov5del1
+target = ov5
+compiler = gcc
 
-run: ov5del1
-	./ov5del1
+all: $(target)
+	$(compiler) ov5.c -o $(target)
+
+run: all
+	./ov5 $(del)
 
 clean:
-	rm -f ov5del1
+	rm -f $(target)
