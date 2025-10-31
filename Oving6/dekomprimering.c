@@ -39,7 +39,24 @@ static int read_u64_le(FILE *fp, uint64_t *out)
   return 0;
 }
 
+// backwards copy of the data... 
 
+static void lz_overlap(uint8_t *dst,size_t *pos, uint16_t dist, uint16_t len){
+
+
+  size_t writePos = *pos; 
+  size_t readPos = writePos-dist;
+
+  // copying byte for byte 
+  for (uint16_t i = 0; i < len; i++)
+  {
+    dst[writePos] = dst[readPos];
+    writePos++;
+    readPos++;
+  }
+
+  *pos = writePos; 
+}
 
 
 int main()
