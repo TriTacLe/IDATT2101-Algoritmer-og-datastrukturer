@@ -58,6 +58,42 @@ static void lz_overlap(uint8_t *dst,size_t *pos, uint16_t dist, uint16_t len){
   *pos = writePos; 
 }
 
+int decompress_file(int argc, char **argv){
+  if (argc < 3){
+    fprintf(stderr, "Bruk: %s <input.lz> <output> \n", argv[0]); 
+    return 2; 
+  }
+  const char *in_path = argv[1], *out_path = argv[2];
+
+
+  //opening the compressed file
+  FILE *in = fopen(in_path, "rb"); 
+  if(!in){
+    fprintf(stderr, "Kunne ikke åpne %s: %s\n", in_path, strerror(errno));
+    return 1;
+  }
+  
+  //reading the header
+  uint64_t originalSize = 0, tokenCount = 0;
+  if (read_u64_le(in, &originalSize) < 0 || read_u64_le(in, &tokenCount) < 0)
+  {
+    fprintf(stderr, "Korrupt/ufullstendig header\n");
+    fclose(in);
+    return 1;
+  }
+
+  //allocating buffer for output
+
+
+  //mainloop for building the decompressed file
+
+  
+
+
+  //writing results to the file
+
+}
+
 
 int main()
 {
