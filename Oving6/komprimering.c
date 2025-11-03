@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <stdbool.h>
 
-#define SEARCH_BUFFER 128000
+#define SEARCH_BUFFER 32768
 #define LOOKAHEAD_SIZE 258
 #define MIN_MATCH 3
 
@@ -43,7 +43,7 @@ bool isInArr(const char *str)
 struct Match
 {
   uint16_t length;
-  uint32_t distance;
+  uint16_t distance;
 };
 
 struct LZtoken
@@ -107,7 +107,7 @@ size_t lzCompress(uint8_t *input, uint32_t inputSize, struct LZtoken *output)
 
 static void write_u16_le(FILE *filePointer, uint16_t value)
 {
-  uint8_t bytes[2] = {(uint8_t)(value & 0xFF), (uint8_t)((value >> 8) & 0xFF)};
+  uint8_t bytes[2] = {(uint8_t)(value & 0xFF), (uint8_t)(value >> 8 & 0xFF)};
   fwrite(bytes, 1, 2, filePointer);
 }
 
@@ -181,113 +181,97 @@ struct DistanceCodeInfo
 static const uint16_t lenArrExtraBits[] = {
     3, 11, 19, 35, 67, 131, 3};
 
+typedef struct
+{
+  uint16_t base;
+  uint8_t extra;
+} BaseExtra;
+
+static const BaseExtra LEN_TBL[29] = {
+    {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 1}, {13, 1}, {15, 1}, {17, 1}, {19, 2}, {23, 2}, {27, 2}, {31, 2}, {35, 3}, {43, 3}, {51, 3}, {59, 3}, {67, 4}, {83, 4}, {99, 4}, {115, 4}, {131, 5}, {163, 5}, {195, 5}, {227, 5}, {258, 0}};
+
 void getLengthCode(uint16_t length,
                    uint16_t *outCode,
                    uint8_t *outExtraBits,
                    uint16_t *outExtraValue)
 {
-  if (length < 3 || length > 258)
+  if (length < 3)
+    length = 3;
+  if (length > 258)
+    length = 258;
+
+  if (length == 258)
   {
-    printf("Invalid length: %d\n", length);
-    *outCode = 0;
+    *outCode = 285;
     *outExtraBits = 0;
     *outExtraValue = 0;
     return;
   }
 
-  if (length <= 10)
+  // 257–285 korresponderer til indeks 0–28
+  for (uint16_t idx = 0; idx < 29; idx++)
   {
-    *outCode = 257 + (length - 3);
-    *outExtraBits = 0;
-    *outExtraValue = 0;
-  }
-  else if (length == 258)
-  {
-    *outCode = 285;
-    *outExtraBits = 0;
-    *outExtraValue = 0;
-  }
-  else
-  {
-    static const struct
-    {
-      uint16_t base;
-      uint8_t bits;
-      uint16_t code_start;
-    } ranges[] = {
-        {11, 1, 265},
-        {13, 1, 266},
-        {15, 1, 267},
-        {17, 1, 268},
-        {19, 2, 269},
-        {23, 2, 270},
-        {27, 2, 271},
-        {31, 2, 272},
-        {35, 3, 273},
-        {43, 3, 274},
-        {51, 3, 275},
-        {59, 3, 276},
-        {67, 4, 277},
-        {83, 4, 278},
-        {99, 4, 279},
-        {115, 4, 280},
-        {131, 5, 281},
-        {163, 5, 282},
-        {195, 5, 283},
-        {227, 5, 284},
-    };
+    uint16_t base = LEN_TBL[idx].base;
+    uint8_t eb = LEN_TBL[idx].extra;
+    uint32_t span = (eb == 0) ? 1u : (1u << eb);
+    uint32_t maxv = (uint32_t)base + span - 1u;
 
-    for (int i = 0; i < 20; i++)
+    if (length >= base && length <= maxv)
     {
-      if (length >= ranges[i].base &&
-          (i == 19 || length < ranges[i + 1].base))
-      {
-        *outCode = ranges[i].code_start +
-                   ((length - ranges[i].base) >> ranges[i].bits);
-        *outExtraBits = ranges[i].bits;
-        *outExtraValue = (length - ranges[i].base) & ((1 << ranges[i].bits) - 1);
-        break;
-      }
+      *outCode = (uint16_t)(257 + idx);
+      *outExtraBits = eb;
+      *outExtraValue = (uint16_t)(length - base);
+      return;
     }
   }
+
+  // Fallback (skal ikke skje)
+  *outCode = 285;
+  *outExtraBits = 0;
+  *outExtraValue = 0;
 }
 
-// List of base values
+/* // List of base values
 static const uint16_t extraBitsArr[] = {
     1, 5, 9, 17,
     33, 65, 129, 257,
     513, 1025, 2049, 4097,
-    8193, 16383, 1};
+    8193, 16385, 24577}; */
+
+static const BaseExtra DIST_TBL[30] = {
+    {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 1}, {7, 1}, {9, 2}, {13, 2}, {17, 3}, {25, 3}, {33, 4}, {49, 4}, {65, 5}, {97, 5}, {129, 6}, {193, 6}, {257, 7}, {385, 7}, {513, 8}, {769, 8}, {1025, 9}, {1537, 9}, {2049, 10}, {3073, 10}, {4097, 11}, {6145, 11}, {8193, 12}, {12289, 12}, {16385, 13}, {24577, 13}};
 
 void getDistanceCode(uint32_t distance,
                      uint16_t *outCode,
                      uint8_t *outExtraBits,
                      uint16_t *outExtraValue)
 {
-  uint8_t e = 0;
-  while (e + 1u < ARRAY_LEN(extraBitsArr) && distance >= extraBitsArr[e + 1])
-    e++;
-  uint8_t extraBits = e;
+  if (distance < 1)
+    distance = 1;
+  if (distance > 32768)
+    distance = 32768; // DEFLATE-vindu
 
-  uint16_t base = extraBitsArr[e];
-  uint16_t extraValue = 0;
-  uint16_t code;
-
-  if (extraBits == 0)
+  // Finn koden ved å lete i samme tabell som dekoderen bruker
+  for (uint16_t code = 0; code < 30; code++)
   {
-    code = distance - base; // 0-3
-  }
-  else
-  {
-    uint16_t offset = distance - base;
-    uint16_t groupSize = (1 << extraBits);
-    uint16_t codeOffset = offset / groupSize;
-    code = 4 + (extraBits - 1) * 2 + codeOffset;
+    uint16_t base = DIST_TBL[code].base;
+    uint8_t eb = DIST_TBL[code].extra;
+    uint32_t span = (eb == 0) ? 1u : (1u << eb);
+    uint32_t maxv = (uint32_t)base + span - 1u;
+
+    if (distance >= base && distance <= maxv)
+    {
+      *outCode = code;
+      *outExtraBits = eb;
+      *outExtraValue = (uint16_t)(distance - base);
+      return;
+    }
   }
 
-  *outCode = code;
-  *outExtraBits = extraBits;
-  *outExtraValue = extraValue;
+  // Fallback (skal ikke skje med distance <= 32768)
+  *outCode = 29; // siste kode
+  *outExtraBits = 13;
+  *outExtraValue = (uint16_t)(distance - 24577);
 }
 
 void countFrequencies(struct LZtoken *tokens,
@@ -447,6 +431,43 @@ void generateBitCodes(struct HuffmannNode *node, struct HuffmannCode *codes, uin
 
   if (node->right != NULL)
     generateBitCodes(node->right, codes, code << 1 | 1, length + 1);
+}
+
+void buildCanonicalCodes(struct HuffmannCode *codes, size_t count)
+{
+  uint16_t bl_count[32] = {0};
+  uint16_t next_code[32] = {0};
+  uint16_t code = 0;
+
+  // Tell hvor mange symboler per lengde
+  for (size_t i = 0; i < count; i++)
+    if (codes[i].length > 0)
+      bl_count[codes[i].length]++;
+
+  // Finn første kode per lengde (count/first/next-metoden)
+  for (int bits = 1; bits <= 31; bits++)
+  {
+    code = (code + bl_count[bits - 1]) << 1;
+    next_code[bits] = code;
+  }
+
+  // Tildel kanoniske koder (LSB-først rekkefølge)
+  for (size_t n = 0; n < count; n++)
+  {
+    uint8_t len = codes[n].length;
+    if (len != 0)
+    {
+      uint32_t c = next_code[len]++;
+      // snu bitrekkefølgen fordi vi skriver LSB først
+      uint32_t rev = 0;
+      for (int i = 0; i < len; i++)
+      {
+        rev = (rev << 1) | (c & 1);
+        c >>= 1;
+      }
+      codes[n].bits = rev;
+    }
+  }
 }
 
 struct BitWriter
@@ -624,6 +645,9 @@ int main(int argc, char **argv)
   struct HuffmannCode distCodes[30] = {0};
   generateBitCodes(literalTree, literalCodes, 0, 0);
   generateBitCodes(distTree, distCodes, 0, 0);
+
+  buildCanonicalCodes(literalCodes, 286);
+  buildCanonicalCodes(distCodes, 30);
 
   const char *deflateOutputFile = "output.komprimert.deflate";
 
