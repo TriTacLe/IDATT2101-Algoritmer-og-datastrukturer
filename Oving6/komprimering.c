@@ -267,138 +267,51 @@ void getLengthCode(uint16_t length,
   *outExtraValue = extraValue;
 }
 
+const typedef enum {
+	BASE_0 = 1,
+	BASE_1 = 5,
+	BASE_2 = 9,
+	BASE_3 = 17,
+	BASE_4 = 33,
+	BASE_5 = 65,
+	BASE_6 = 129,
+	BASE_7 = 257,
+	BASE_8 = 513,
+	BASE_9 = 1025,
+	BASE_10 = 2049,
+	BASE_11 = 4097,
+	BASE_12 = 8193,
+	BASE_13 = 16383
+} Base;
+
+static const uint16_t extraBitsArr[] = {
+	BASE_0, BASE_1, BASE_2, BASE_3,
+	BASE_4, BASE_5, BASE_6, BASE_7,
+	BASE_8,	BASE_9, BASE_10, BASE_11,
+	BASE_12, BASE_13, 1
+};
+
+#define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
+
 void getDistanceCode(uint16_t distance,
                      uint16_t *outCode,
                      uint8_t *outExtraBits,
-                     uint16_t *outExtraValue)
-{
-  uint8_t extraBits;
-  if (distance <= 4)
-  {
-    extraBits = 0;
-  }
-  else if (distance <= 8)
-  {
-    extraBits = 1;
-  }
-  else if (distance <= 16)
-  {
-    extraBits = 2;
-  }
-  else if (distance <= 32)
-  {
-    extraBits = 3;
-  }
-  else if (distance <= 64)
-  {
-    extraBits = 4;
-  }
-  else if (distance <= 128)
-  {
-    extraBits = 5;
-  }
-  else if (distance <= 256)
-  {
-    extraBits = 6;
-  }
-  else if (distance <= 512)
-  {
-    extraBits = 7;
-  }
-  else if (distance <= 1024)
-  {
-    extraBits = 8;
-  }
-  else if (distance <= 2048)
-  {
-    extraBits = 9;
-  }
-  else if (distance <= 4096)
-  {
-    extraBits = 10;
-  }
-  else if (distance <= 8192)
-  {
-    extraBits = 11;
-  }
-  else if (distance <= 16384)
-  {
-    extraBits = 12;
-  }
-  else
-  {
-    extraBits = 13;
-  }
+                     uint16_t *outExtraValue) {
+  uint8_t e = 0;
+  while (e + 1u < ARRAY_LEN(extraBitsArr) && distance >= extraBitsArr[e + 1]) e++;
+  uint8_t extraBits = e;
 
-  uint16_t base;
-  switch (extraBits)
-  {
-  case 0:
-    base = 1;
-    break;
-  case 1:
-    base = 5;
-    break;
-  case 2:
-    base = 9;
-    break;
-  case 3:
-    base = 17;
-    break;
-  case 4:
-    base = 33;
-    break;
-  case 5:
-    base = 65;
-    break;
-  case 6:
-    base = 129;
-    break;
-  case 7:
-    base = 257;
-    break;
-  case 8:
-    base = 513;
-    break;
-  case 9:
-    base = 1025;
-    break;
-  case 10:
-    base = 2049;
-    break;
-  case 11:
-    base = 4097;
-    break;
-  case 12:
-    base = 8193;
-    break;
-  case 13:
-    base = 16385;
-    break;
-  default:
-    base = 1;
-    break;
-  }
-
+  uint16_t base = extraBitsArr[e];
+  uint16_t extraValue = 0;
   uint16_t code;
-  if (extraBits == 0)
-  {
+
+  if (extraBits == 0) {
     code = distance - base; // 0-3
-  }
-  else
-  {
-    uint16_t offset = distance - base;
+  } else {
+	uint16_t offset = distance - base;
     uint16_t groupSize = (1 << extraBits);
     uint16_t codeOffset = offset / groupSize;
     code = 4 + (extraBits - 1) * 2 + codeOffset;
-  }
-
-  uint16_t extraValue = 0;
-  if (extraBits > 0)
-  {
-    uint16_t groupSize = (1 << extraBits);
-    uint16_t offset = distance - base;
-    extraValue = offset % groupSize;
   }
 
   *outCode = code;
