@@ -1,8 +1,9 @@
 # Oving 6
 output.komprimert.deflate
 output.komprimert.lz
-# For stor fil
 enwik8.txt
+enwik8
+
 # foreløpig bare, tror ikke man skal ignore exec filer
 dekomprimering 
 komprimering 

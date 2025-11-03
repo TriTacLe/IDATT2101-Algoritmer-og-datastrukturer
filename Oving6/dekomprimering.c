@@ -323,5 +323,6 @@ int main(int argc, char **argv)
   free(distTrie.nodes);
 
   printf("OK. Skrev %zu bytes til %s\n", outlen, outpath);
+
   return 0;
 }
