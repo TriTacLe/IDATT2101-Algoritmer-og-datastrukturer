@@ -605,8 +605,8 @@ void writeDeflateAlgoCompressed(const char *filename, struct LZtoken *tokens, si
     }
     else
     {
-      uint16_t length = tokens->literalOrMatch.match.length;
-      uint16_t distance = tokens->literalOrMatch.match.distance;
+      uint16_t length = tokens[i].literalOrMatch.match.length;
+      uint16_t distance = tokens[i].literalOrMatch.match.distance;
 
       uint16_t lengthCode, lengthExtraValues;
       uint8_t lengthExtraBits;
@@ -620,7 +620,7 @@ void writeDeflateAlgoCompressed(const char *filename, struct LZtoken *tokens, si
       if (lengthExtraBits > 0)
         writeBits(&bitwriter, lengthExtraValues, lengthExtraBits);
 
-      writeBits(&bitwriter, distCodes[lengthCode].bits, distCodes[lengthCode].length);
+      writeBits(&bitwriter, distCodes[distCode].bits, distCodes[distCode].length);
       if (distExtraBits > 0)
         writeBits(&bitwriter, distExtraValues, distExtraBits);
     }
