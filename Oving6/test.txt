@@ -1,4 +1,0 @@
-Dette er en testfil for komprimering og dekomprimering.
-Den inneholder noen norske bokstaver: æ, ø og å.
-Gjenta, gjenta, gjenta — for å se hvordan algoritmen håndterer mønstre.
-Komprimering er gøy, men å dekomprimere er enda bedre!
