@@ -7,15 +7,15 @@
 #include <stdbool.h>
 
 // Tall iht delfate algoritmen som brukes
-#define SEARCH_BUFFER 32768 // 32kb search buffer
-#define LOOKAHEAD_SIZE 258  // max match length (derfor uint16_t)
-#define MIN_MATCH 3         // minimum match lengde for å gi meninig
+#define SEARCH_BUFFER 128000 // 32kb search buffer
+#define LOOKAHEAD_SIZE 258   // max match length (derfor uint16_t)
+#define MIN_MATCH 3          // minimum match lengde for å gi meninig
 
 // Generalisering av lengde til arrays
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
 const char FILE_NAME_STRING[][41] = {
-    "opg6-kompr.lynx",                           // 34 kB lyx
+    "opg6-kompr.lyx",                            // 34 kB lyx
     "Twenty_thousand_leagues_under_the_sea.txt", // 595 kB txt
     "diverse.txt",                               // forelesning 17 kB txt
     "diverse.lyx",                               // forelesning 179 kB lyx
@@ -33,7 +33,7 @@ bool isInArr(const char *str)
   int len = sizeof(FILE_NAME_STRING) / sizeof(FILE_NAME_STRING[0]);
   for (int i = 0; i < len; i++)
   {
-    if (strcmp(FILE_NAME_STRING[i], str))
+    if (strcmp(FILE_NAME_STRING[i], str) == 0)
     {
       return true;
     }
@@ -187,41 +187,70 @@ void getLengthCode(uint16_t length,
                    uint8_t *outExtraBits,
                    uint16_t *outExtraValue)
 {
-  if (length == 258)
+  if (length < 3 || length > 258)
   {
-    *outCode = 285;
+    printf("Invalid length: %d\n", length);
+    *outCode = 0;
     *outExtraBits = 0;
     *outExtraValue = 0;
     return;
   }
 
-  uint16_t e = 0;
-  while (e + 1u < ARRAY_LEN(lenArrExtraBits) &&
-         length >= lenArrExtraBits[e + 1])
-    ++e;
-
-  uint16_t base = lenArrExtraBits[e];
-  uint16_t extraBits = 0;
-  uint16_t extraValue = 0;
-  uint16_t code;
-
-  if (extraBits == 0)
+  if (length <= 10)
   {
-    code = 257 + (length - base);
+    *outCode = 257 + (length - 3);
+    *outExtraBits = 0;
+    *outExtraValue = 0;
+  }
+  else if (length == 258)
+  {
+    *outCode = 285;
+    *outExtraBits = 0;
+    *outExtraValue = 0;
   }
   else
   {
-    uint16_t offset = length - base;
-    uint16_t groupSize = (1 << extraBits);
-    uint16_t codeOffset = offset / groupSize;
+    static const struct
+    {
+      uint16_t base;
+      uint8_t bits;
+      uint16_t code_start;
+    } ranges[] = {
+        {11, 1, 265},
+        {13, 1, 266},
+        {15, 1, 267},
+        {17, 1, 268},
+        {19, 2, 269},
+        {23, 2, 270},
+        {27, 2, 271},
+        {31, 2, 272},
+        {35, 3, 273},
+        {43, 3, 274},
+        {51, 3, 275},
+        {59, 3, 276},
+        {67, 4, 277},
+        {83, 4, 278},
+        {99, 4, 279},
+        {115, 4, 280},
+        {131, 5, 281},
+        {163, 5, 282},
+        {195, 5, 283},
+        {227, 5, 284},
+    };
 
-    extraValue = offset % groupSize;
-    code = 265 + (extraBits - 1) * 4 + codeOffset;
+    for (int i = 0; i < 20; i++)
+    {
+      if (length >= ranges[i].base &&
+          (i == 19 || length < ranges[i + 1].base))
+      {
+        *outCode = ranges[i].code_start +
+                   ((length - ranges[i].base) >> ranges[i].bits);
+        *outExtraBits = ranges[i].bits;
+        *outExtraValue = (length - ranges[i].base) & ((1 << ranges[i].bits) - 1);
+        break;
+      }
+    }
   }
-
-  *outCode = code;
-  *outExtraBits = extraBits;
-  *outExtraValue = extraValue;
 }
 
 // List of base values
