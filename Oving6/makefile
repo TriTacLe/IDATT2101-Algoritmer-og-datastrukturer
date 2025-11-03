@@ -9,6 +9,8 @@ TARGETDEK = dekomprimering
 SOURCEKOM = komprimering.c
 SOURCEDEK = dekomprimering.c
 
+FILE ?= diverse.lyx
+
 all: $(TARGETKOM) $(TARGETDEK)
 
 $(TARGETKOM): $(SOURCEKOM)
@@ -17,11 +19,11 @@ $(TARGETKOM): $(SOURCEKOM)
 $(TARGETDEK): $(SOURCEDEK)
 	$(COMPILER) $^ -o $@
 
-kom:
-	./$(TARGETKOM)
+kom: $(TARGETKOM)
+	./$(TARGETKOM) $(FILE)
 
-dek:
-	./$(TARGETDEK)
+dek: $(TARGETDEK)
+	./$(TARGETDEK) $(FILE)
 
 
 clean:
