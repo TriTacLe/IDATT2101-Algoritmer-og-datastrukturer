@@ -58,13 +58,8 @@ static void lz_overlap(uint8_t *dst,size_t *pos, uint16_t dist, uint16_t len){
   *pos = writePos; 
 }
 
-int decompress_file(int argc, char **argv){
-  if (argc < 3){
-    fprintf(stderr, "Bruk: %s <input.lz> <output> \n", argv[0]); 
-    return 2; 
-  }
-  const char *in_path = argv[1], *out_path = argv[2];
-
+static int decompress_file(const char *in_path, const char *out_path)
+{
 
   //opening the compressed file
   FILE *in = fopen(in_path, "rb"); 
@@ -82,27 +77,138 @@ int decompress_file(int argc, char **argv){
     return 1;
   }
 
-  //allocating buffer for output
+  //allocating buffer
+  uint8_t *outbuf = NULL;
+  if (originalSize > 0)
+  {
+    outbuf = (uint8_t *)malloc((size_t)originalSize);
+    if (!outbuf)
+    {
+      fprintf(stderr, "malloc(%zu) feilet\n", (size_t)originalSize);
+      fclose(in);
+      return 1;
+    }
+  }
 
 
-  //mainloop for building the decompressed file
+  //reading tokens
+  size_t out_pos = 0;
+  for (uint64_t t = 0; t < tokenCount && out_pos < (size_t)originalSize; ++t)
+  {
+    uint8_t type = 0;
+    if (read_u8(in, &type) < 0)
+    {
+      fprintf(stderr, "EOF ved token %llu\n", (unsigned long long)t);
+      free(outbuf);
+      fclose(in);
+      return 1;
+    }
 
-  
+    if (type == 0)
+    {
+    
+      uint8_t lit;
+      if (read_u8(in, &lit) < 0)
+      {
+        fprintf(stderr, "EOF literal\n");
+        free(outbuf);
+        fclose(in);
+        return 1;
+      }
+      if (out_pos >= (size_t)originalSize)
+      {
+        fprintf(stderr, "Overflow literal\n");
+        free(outbuf);
+        fclose(in);
+        return 1;
+      }
+      outbuf[out_pos++] = lit;
+    }
+    else if (type == 1)
+    {
+      /* match (length, distance) */
+      uint16_t length = 0, distance = 0;
+      if (read_u16_le(in, &length) < 0 || read_u16_le(in, &distance) < 0)
+      {
+        fprintf(stderr, "EOF match\n");
+        free(outbuf);
+        fclose(in);
+        return 1;
+      }
+      if (length == 0)
+        continue; 
+      if (distance == 0 || distance > out_pos)
+      { /* kan ikke peke før start */
+        fprintf(stderr, "Ugyldig distance=%u ved out_pos=%zu (token %llu)\n",
+                distance, out_pos, (unsigned long long)t);
+        free(outbuf);
+        fclose(in);
+        return 1;
+      }
+      if ((size_t)length > (size_t)originalSize - out_pos)
+      {
+        fprintf(stderr, "Overflow match len=%u\n", length);
+        free(outbuf);
+        fclose(in);
+        return 1;
+      }
+      lz_overlap(outbuf, &out_pos, distance, length);
+    }
+    else
+    {
+      fprintf(stderr, "Ukjent token type=%u (token %llu)\n", type, (unsigned long long)t);
+      free(outbuf);
+      fclose(in);
+      return 1;
+    }
+  }
+
+  if (out_pos != (size_t)originalSize)
+  {
+    fprintf(stderr, "Størrelsesfeil: produserte %zu, forventet %llu\n",
+            out_pos, (unsigned long long)originalSize);
+    free(outbuf);
+    fclose(in);
+    return 1;
+  }
 
 
-  //writing results to the file
+//writing out to the file
+  FILE *out = fopen(out_path, "wb");
+  if (!out)
+  {
+    fprintf(stderr, "Kunne ikke åpne %s: %s\n", out_path, strerror(errno));
+    free(outbuf);
+    fclose(in);
+    return 1;
+  }
+  if (originalSize && fwrite(outbuf, 1, (size_t)originalSize, out) != (size_t)originalSize)
+  {
+    fprintf(stderr, "Skrivefeil\n");
+    free(outbuf);
+    fclose(out);
+    fclose(in);
+    return 1;
+  }
 
+  fclose(out);
+  free(outbuf);
+  fclose(in);
+  return 0;
 }
 
-
-int main()
+int main(int argc, char **argv)
 {
-  FILE *filePointer;
-
-  // oblig file
+  if (argc < 3)
+  {
+    fprintf(stderr, "Bruk: %s <input.lz> <output>\n", argv[0]);
+    return 2;
+  }
+  return decompress_file(argv[1], argv[2]);
+}
+/*   // oblig file
   filePointer = fopen("diverse.lyx", "w");
   // filePointer = fopen("Twenty_thousand_leagues_under_the_sea.txt", "w");
 
   fclose(filePointer);
-  return 0;
-}
+  return 0; */
