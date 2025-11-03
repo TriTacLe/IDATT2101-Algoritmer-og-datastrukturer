@@ -64,6 +64,8 @@
     "string": "c",
     "string_view": "c",
     "unordered_map": "c",
-    "unordered_set": "c"
+    "unordered_set": "c",
+    "__locale": "c",
+    "bitset": "c"
   }
 }
