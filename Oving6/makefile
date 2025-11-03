@@ -30,7 +30,7 @@ dek: $(TARGETDEK)
 roundtrip: all kom dek check
 
 check:
-	@cmp -s $(FILE) $(DEC_FILE) && echo "OK: $(FILE) == $(DEC_FILE)" || (echo "FEIL: filer er ulike" ; exit 1)
+	@cmp -s $(FILE) $(DEC_FILE) && echo "OK, filene er like: $(FILE) == $(DEC_FILE)" || (echo "FEIL: filer er ulike" ; exit 1)
 
 clean:
 	rm -f $(TARGETKOM) $(TARGETDEK) $(DEC_FILE)
