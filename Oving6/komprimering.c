@@ -15,35 +15,40 @@
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
 const char FILE_NAME_STRING[][41] = {
-  "opg6-kompr.lynx",                            // 34 kB lyx
-  "Twenty_thousand_leagues_under_the_sea.txt",  // 595 kB txt
-  "diverse.txt",                                // forelesning 17 kB txt
-  "diverse.lyx",                                // forelesning 179 kB lyx
-  "enwik8.txt",                                 // 100 MB txt
-  "test.txt"
-};
+    "opg6-kompr.lynx",                           // 34 kB lyx
+    "Twenty_thousand_leagues_under_the_sea.txt", // 595 kB txt
+    "diverse.txt",                               // forelesning 17 kB txt
+    "diverse.lyx",                               // forelesning 179 kB lyx
+    "enwik8.txt",                                // 100 MB txt
+    "test.txt"};
 
-const char* getFileName(int t) {
+const char *getFileName(int t)
+{
   return FILE_NAME_STRING[t];
 }
 
 // Compare Arrays of strings
-bool isInArr(const char* str) {
+bool isInArr(const char *str)
+{
   int len = sizeof(FILE_NAME_STRING) / sizeof(FILE_NAME_STRING[0]);
-  for (int i = 0; i < len; i++) {
-    if (strcmp(FILE_NAME_STRING[i], str)) {
+  for (int i = 0; i < len; i++)
+  {
+    if (strcmp(FILE_NAME_STRING[i], str))
+    {
       return true;
     }
   }
   return false;
 }
 
-struct Match {
+struct Match
+{
   uint16_t length;
   uint16_t distance;
 };
 
-struct LZtoken {
+struct LZtoken
+{
   uint8_t type; // literal 0 or match 1
   union
   {
@@ -52,7 +57,8 @@ struct LZtoken {
   } literalOrMatch;
 };
 
-struct Match findBestMatch(uint8_t *input, uint32_t position, uint32_t inputSize) {
+struct Match findBestMatch(uint8_t *input, uint32_t position, uint32_t inputSize)
+{
   struct Match best = {0, 0};
   uint32_t searchStart = (position > SEARCH_BUFFER) ? position - SEARCH_BUFFER : 0;
   uint32_t maxLength = (LOOKAHEAD_SIZE > (inputSize - position)) ? inputSize - position : LOOKAHEAD_SIZE;
@@ -75,7 +81,8 @@ struct Match findBestMatch(uint8_t *input, uint32_t position, uint32_t inputSize
   return best;
 }
 
-size_t lzCompress(uint8_t *input, uint32_t inputSize, struct LZtoken *output) {
+size_t lzCompress(uint8_t *input, uint32_t inputSize, struct LZtoken *output)
+{
   uint32_t position = 0;
   size_t outputPosition = 0;
   while (position < inputSize)
@@ -99,12 +106,14 @@ size_t lzCompress(uint8_t *input, uint32_t inputSize, struct LZtoken *output) {
   return outputPosition;
 }
 
-static void write_u16_le(FILE *filePointer, uint16_t value) {
+static void write_u16_le(FILE *filePointer, uint16_t value)
+{
   uint8_t bytes[2] = {(uint8_t)(value & 0xFF), (uint8_t)((value >> 8) & 0xFF)};
   fwrite(bytes, 1, 2, filePointer);
 }
 
-static void write_u64_le(FILE *fp, uint64_t v) {
+static void write_u64_le(FILE *fp, uint64_t v)
+{
   uint8_t b[8];
   for (int i = 0; i < 8; i++)
     b[i] = (uint8_t)((v >> (8 * i)) & 0xFF);
@@ -114,7 +123,8 @@ static void write_u64_le(FILE *fp, uint64_t v) {
 int writeTokensToFile(const char *outputFileName,
                       const struct LZtoken *tokens,
                       size_t tokenCount,
-                      uint64_t originalSize) {
+                      uint64_t originalSize)
+{
   FILE *filePointer = fopen(outputFileName, "wb");
 
   write_u64_le(filePointer, originalSize);
@@ -170,14 +180,15 @@ struct DistanceCodeInfo
 };
 
 static const uint16_t lenArrExtraBits[] = {
-	3, 11, 19, 35, 67, 131, 3
-};
+    3, 11, 19, 35, 67, 131, 3};
 
 void getLengthCode(uint16_t length,
                    uint16_t *outCode,
                    uint8_t *outExtraBits,
-                   uint16_t *outExtraValue) {
-  if (length == 258) {
+                   uint16_t *outExtraValue)
+{
+  if (length == 258)
+  {
     *outCode = 285;
     *outExtraBits = 0;
     *outExtraValue = 0;
@@ -186,21 +197,25 @@ void getLengthCode(uint16_t length,
 
   uint16_t e = 0;
   while (e + 1u < ARRAY_LEN(lenArrExtraBits) &&
-		length >= lenArrExtraBits[e + 1]) ++e;
+         length >= lenArrExtraBits[e + 1])
+    ++e;
 
   uint16_t base = lenArrExtraBits[e];
   uint16_t extraBits = 0;
   uint16_t extraValue = 0;
   uint16_t code;
 
-  if (extraBits == 0) {
+  if (extraBits == 0)
+  {
     code = 257 + (length - base);
-  } else {
+  }
+  else
+  {
     uint16_t offset = length - base;
     uint16_t groupSize = (1 << extraBits);
     uint16_t codeOffset = offset / groupSize;
 
-	extraValue = offset % groupSize;
+    extraValue = offset % groupSize;
     code = 265 + (extraBits - 1) * 4 + codeOffset;
   }
 
@@ -211,28 +226,32 @@ void getLengthCode(uint16_t length,
 
 // List of base values
 static const uint16_t extraBitsArr[] = {
-	1, 5, 9, 17,
-	33, 65, 129, 257,
-	513, 1025, 2049, 4097,
-	8193, 16383, 1
-};
+    1, 5, 9, 17,
+    33, 65, 129, 257,
+    513, 1025, 2049, 4097,
+    8193, 16383, 1};
 
 void getDistanceCode(uint16_t distance,
                      uint16_t *outCode,
                      uint8_t *outExtraBits,
-                     uint16_t *outExtraValue) {
+                     uint16_t *outExtraValue)
+{
   uint8_t e = 0;
-  while (e + 1u < ARRAY_LEN(extraBitsArr) && distance >= extraBitsArr[e + 1]) e++;
+  while (e + 1u < ARRAY_LEN(extraBitsArr) && distance >= extraBitsArr[e + 1])
+    e++;
   uint8_t extraBits = e;
 
   uint16_t base = extraBitsArr[e];
   uint16_t extraValue = 0;
   uint16_t code;
 
-  if (extraBits == 0) {
+  if (extraBits == 0)
+  {
     code = distance - base; // 0-3
-  } else {
-	uint16_t offset = distance - base;
+  }
+  else
+  {
+    uint16_t offset = distance - base;
     uint16_t groupSize = (1 << extraBits);
     uint16_t codeOffset = offset / groupSize;
     code = 4 + (extraBits - 1) * 2 + codeOffset;
@@ -499,7 +518,8 @@ void writeDeflateAlgoCompressed(const char *filename, struct LZtoken *tokens, si
 /**
  * Use long because one of the file is 100MB
  */
-static long int findFileSize(const char *fileName) {
+static long int findFileSize(const char *fileName)
+{
   FILE *filePointer;
 
   filePointer = fopen(fileName, "rb");
@@ -517,14 +537,17 @@ static long int findFileSize(const char *fileName) {
   return fileSize;
 }
 
-int main(int argc, char** argv) {
-  if (argc != 2) {
+int main(int argc, char **argv)
+{
+  if (argc != 2)
+  {
     printf("Error: You did not pass in an argument/file to compress");
     return 1;
   }
 
-  const char* inputFileName = argv[1];
-  if (!isInArr(inputFileName)) {
+  const char *inputFileName = argv[1];
+  if (!isInArr(inputFileName))
+  {
     printf("Error: Your argument \"%s\" is not in list of valid filenames", inputFileName);
     return 1;
   }
@@ -535,7 +558,7 @@ int main(int argc, char** argv) {
   long int inputFileSize = findFileSize(inputFileName);
   // (inputFileSize != -1) ? printf("File size: %ld bytes\n", inputFileSize) : printf("File is emtpy\n");
 
-  FILE* filePointer = fopen(inputFileName, "rb");
+  FILE *filePointer = fopen(inputFileName, "rb");
   if (!filePointer)
     perror("fopen input\n");
 
