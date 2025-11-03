@@ -656,8 +656,16 @@ int main()
 {
   // oblig file
   const char *inputFileName = "diverse.lyx";
-  const char *outputFileName = "diverse.lz";
 
+  // ------------------------
+  // const char *inputFileName = "diverse.txt";
+  // const char *inputFileName = "Twenty_thousand_leagues_under_the_sea.txt";
+  // const char *inputFileName = "opg6-kompr.lyx";
+  // ------------------------
+
+  const char *outputFileName = "output.komprimert.lz";
+
+  printf("Input file: %s\n", inputFileName);
   long int inputFileSize = findFileSize(inputFileName);
   // (inputFileSize != -1) ? printf("File size: %ld bytes\n", inputFileSize) : printf("File is emtpy\n");
 
@@ -700,7 +708,7 @@ int main()
   generateBitCodes(literalTree, literalCodes, 0, 0);
   generateBitCodes(distTree, distCodes, 0, 0);
 
-  const char *deflateOutputFile = "diverse.lyx.komprimert";
+  const char *deflateOutputFile = "output.komprimert.deflate";
 
   writeDeflateAlgoCompressed(deflateOutputFile,
                              tokens,
