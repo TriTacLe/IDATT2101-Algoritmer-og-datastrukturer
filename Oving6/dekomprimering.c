@@ -6,7 +6,7 @@
 
 #define LIT_COUNT 286
 #define DIST_COUNT 30
-#define MAX_BITS 31
+#define MAX_BITS 15
 #define END_SYMBOL 256
 
 // readers
