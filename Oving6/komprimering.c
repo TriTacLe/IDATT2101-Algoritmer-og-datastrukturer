@@ -6,10 +6,9 @@
 #include <sys/types.h>
 #include <stdbool.h>
 
-// Tall iht delfate algoritmen som brukes
-#define SEARCH_BUFFER 128000 // 32kb search buffer
-#define LOOKAHEAD_SIZE 258   // max match length (derfor uint16_t)
-#define MIN_MATCH 3          // minimum match lengde for å gi meninig
+#define SEARCH_BUFFER 128000
+#define LOOKAHEAD_SIZE 258
+#define MIN_MATCH 3
 
 // Generalisering av lengde til arrays
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
@@ -44,7 +43,7 @@ bool isInArr(const char *str)
 struct Match
 {
   uint16_t length;
-  uint16_t distance;
+  uint32_t distance;
 };
 
 struct LZtoken
@@ -260,7 +259,7 @@ static const uint16_t extraBitsArr[] = {
     513, 1025, 2049, 4097,
     8193, 16383, 1};
 
-void getDistanceCode(uint16_t distance,
+void getDistanceCode(uint32_t distance,
                      uint16_t *outCode,
                      uint8_t *outExtraBits,
                      uint16_t *outExtraValue)
@@ -595,7 +594,7 @@ int main(int argc, char **argv)
 
   size_t readCount = fread(inputBuffer, 1, (size_t)inputFileSize, filePointer);
   if (readCount != (size_t)inputFileSize)
-    printf("Didn't read\n");
+    printf("Didnt read\n");
 
   fclose(filePointer);
 
