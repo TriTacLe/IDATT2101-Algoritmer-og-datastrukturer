@@ -582,51 +582,146 @@ void writeCodeLengths(FILE *filePointer, struct HuffmannCode *codes, size_t coun
     fputc(codes[i].length, filePointer);
   }
 }
-// delfate = LZ77 + huffmann
-void writeDeflateAlgoCompressed(const char *filename, struct LZtoken *tokens, size_t tokenCount, struct HuffmannCode *literalCodes, struct HuffmannCode *distCodes, uint64_t originalSize)
+void writeDeflateAlgoCompressed(const char *filename,
+                                struct LZtoken *tokens,
+                                size_t tokenCount,
+                                struct HuffmannCode *literalCodes,
+                                struct HuffmannCode *distCodes,
+                                uint64_t originalSize)
 {
   FILE *filePointer = fopen(filename, "wb");
+  if (!filePointer)
+  {
+    perror("fopen deflate output");
+    return;
+  }
 
+  // 1) Header: original size
   write_u64_le(filePointer, originalSize);
 
+  // 2) Bare kodelengdene (0..15) fra eksisterende tabeller
+  uint8_t lit_len[286], dist_len[30];
+  for (int i = 0; i < 286; i++)
+    lit_len[i] = literalCodes[i].length;
+  for (int i = 0; i < 30; i++)
+    dist_len[i] = distCodes[i].length;
+
+  // (valgfritt) verifiser maks 15
+  for (int i = 0; i < 286; i++)
+    if (lit_len[i] > 15)
+    {
+      fprintf(stderr, "Literal len>15\n");
+      exit(1);
+    }
+  for (int i = 0; i < 30; i++)
+    if (dist_len[i] > 15)
+    {
+      fprintf(stderr, "Dist len>15\n");
+      exit(1);
+    }
+
+  // 3) Skriv kodelengder (uendret format)
   writeCodeLengths(filePointer, literalCodes, 286);
   writeCodeLengths(filePointer, distCodes, 30);
 
-  struct BitWriter bitwriter;
-  bitWriterInit(&bitwriter, filePointer);
+  // 4) Bygg KANONISKE MSB-ordnede koder fra lengdene (RFC1951-metoden)
+  uint32_t lit_code_msb[286] = {0}, dist_code_msb[30] = {0};
+  {
+    int count[16] = {0};
+    uint32_t first[16] = {0}, next[16] = {0};
+    for (int i = 0; i < 286; i++)
+      if (lit_len[i])
+        count[lit_len[i]]++;
+    for (int l = 1; l <= 15; l++)
+    {
+      first[l] = ((first[l - 1] + count[l - 1]) << 1);
+    }
+    for (int l = 0; l <= 15; l++)
+      next[l] = first[l];
+    for (int s = 0; s < 286; s++)
+      if (lit_len[s])
+        lit_code_msb[s] = next[lit_len[s]]++;
+  }
+  {
+    int count[16] = {0};
+    uint32_t first[16] = {0}, next[16] = {0};
+    for (int i = 0; i < 30; i++)
+      if (dist_len[i])
+        count[dist_len[i]]++;
+    for (int l = 1; l <= 15; l++)
+    {
+      first[l] = ((first[l - 1] + count[l - 1]) << 1);
+    }
+    for (int l = 0; l <= 15; l++)
+      next[l] = first[l];
+    for (int s = 0; s < 30; s++)
+      if (dist_len[s])
+        dist_code_msb[s] = next[dist_len[s]]++;
+  }
 
+  // 5) Konverter til LSB-first for writeBits (som sender LSB først)
+  uint32_t lit_code_lsb[286] = {0}, dist_code_lsb[30] = {0};
+  for (int s = 0; s < 286; s++)
+  {
+    uint8_t L = lit_len[s];
+    if (!L)
+      continue;
+    uint32_t msb = lit_code_msb[s], lsb = 0;
+    for (uint8_t i = 0; i < L; i++)
+    {
+      uint32_t bit = (msb >> (L - 1 - i)) & 1u;
+      lsb |= bit << i;
+    }
+    lit_code_lsb[s] = lsb;
+  }
+  for (int s = 0; s < 30; s++)
+  {
+    uint8_t L = dist_len[s];
+    if (!L)
+      continue;
+    uint32_t msb = dist_code_msb[s], lsb = 0;
+    for (uint8_t i = 0; i < L; i++)
+    {
+      uint32_t bit = (msb >> (L - 1 - i)) & 1u;
+      lsb |= bit << i;
+    }
+    dist_code_lsb[s] = lsb;
+  }
+
+  // 6) Skriv bitstrøm med KANONISKE koder
+  struct BitWriter bw;
+  bitWriterInit(&bw, filePointer);
   for (size_t i = 0; i < tokenCount; i++)
   {
-    // Hvis literal
     if (tokens[i].type == 0)
     {
-      uint8_t literal = tokens[i].literalOrMatch.literal;
-      writeBits(&bitwriter, literalCodes[literal].bits, literalCodes[literal].length);
+      uint8_t lit = tokens[i].literalOrMatch.literal;
+      writeBits(&bw, lit_code_lsb[lit], lit_len[lit]);
     }
     else
     {
       uint16_t length = tokens[i].literalOrMatch.match.length;
       uint16_t distance = tokens[i].literalOrMatch.match.distance;
 
-      uint16_t lengthCode, lengthExtraValues;
-      uint8_t lengthExtraBits;
-      getLengthCode(length, &lengthCode, &lengthExtraBits, &lengthExtraValues);
+      uint16_t lenCode, lenExtraVal;
+      uint8_t lenExtraBits;
+      getLengthCode(length, &lenCode, &lenExtraBits, &lenExtraVal);
+      writeBits(&bw, lit_code_lsb[lenCode], lit_len[lenCode]);
+      if (lenExtraBits)
+        writeBits(&bw, lenExtraVal, lenExtraBits);
 
-      uint16_t distCode, distExtraValues;
+      uint16_t distCode, distExtraVal;
       uint8_t distExtraBits;
-      getDistanceCode(distance, &distCode, &distExtraBits, &distExtraValues);
-
-      writeBits(&bitwriter, literalCodes[lengthCode].bits, literalCodes[lengthCode].length);
-      if (lengthExtraBits > 0)
-        writeBits(&bitwriter, lengthExtraValues, lengthExtraBits);
-
-      writeBits(&bitwriter, distCodes[distCode].bits, distCodes[distCode].length);
-      if (distExtraBits > 0)
-        writeBits(&bitwriter, distExtraValues, distExtraBits);
+      getDistanceCode(distance, &distCode, &distExtraBits, &distExtraVal);
+      writeBits(&bw, dist_code_lsb[distCode], dist_len[distCode]);
+      if (distExtraBits)
+        writeBits(&bw, distExtraVal, distExtraBits);
     }
   }
-  writeBits(&bitwriter, literalCodes[256].bits, literalCodes[256].length);
-  bitWriterFlush(&bitwriter);
+  // END (256)
+  writeBits(&bw, lit_code_lsb[256], lit_len[256]);
+
+  bitWriterFlush(&bw);
   fclose(filePointer);
 }
 
