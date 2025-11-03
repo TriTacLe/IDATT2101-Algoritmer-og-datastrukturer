@@ -2,9 +2,11 @@
   "configurations": [
     {
       "name": "macos-clang-x64",
-      "includePath": ["${workspaceFolder}/**", "${workspaceFolder}/Oving3"],
+      "includePath": [
+        "${workspaceFolder}/**"
+      ],
       "compilerPath": "/usr/bin/clang",
-      "cStandard": "c17",
+      "cStandard": "${default}",
       "cppStandard": "${default}",
       "intelliSenseMode": "macos-clang-x64"
     }
