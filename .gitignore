@@ -1,6 +1,9 @@
 # Oving 6
 output.komprimert.deflate
 output.komprimert.lz
+# foreløpig bare, tror ikke man skal ignore exec filer
+dekomprimering 
+komprimering 
 
 # Mac
 .DS_Store
