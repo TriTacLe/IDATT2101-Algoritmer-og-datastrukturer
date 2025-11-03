@@ -6,8 +6,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": "/Users/trile/Desktop/IDATT2101 Algdat",
-      "program": "/Users/trile/Desktop/IDATT2101 Algdat/build/Debug/outDebug"
+      "cwd": ".",
+      "program": "build/Debug/outDebug"
     }
   ]
 }
