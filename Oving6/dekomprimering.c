@@ -9,7 +9,7 @@
 #define MAX_BITS 15
 #define END_SYMBOL 256
 
-// readers 
+// readers
 static int read_u8(FILE *fp, uint8_t *out)
 {
   int c = fgetc(fp);
@@ -166,7 +166,7 @@ static void build_decoder_from_lengths(const uint8_t *lengths, int n, HuffTrie *
   }
 }
 
-// length/distance-tabeller 
+// length/distance-tabeller
 typedef struct
 {
   uint16_t base;
@@ -285,8 +285,7 @@ int main(int argc, char **argv)
       uint32_t add = eb ? br_read_bits(&br, eb) : 0;
       distance = (uint16_t)(base + add);
     }
-    if (distance == 0 || distance > outlen)
-    {
+    if (distance == 0 || distance > outlen) {
       fprintf(stderr, "Ugyldig distance %u ved pos %zu\n", distance, outlen);
       return 1;
     }

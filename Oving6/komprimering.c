@@ -4,11 +4,42 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <stdbool.h>
 
 // Tall iht delfate algoritmen som brukes
-#define SEARCH_BUFFER 32768 // 32kb search buffer
-#define LOOKAHEAD_SIZE 258  // max match length (derfor uint16_t)
-#define MIN_MATCH 3         // minimum match lengde for å gi meninig
+#define SEARCH_BUFFER 128000 // 32kb search buffer
+#define LOOKAHEAD_SIZE 258   // max match length (derfor uint16_t)
+#define MIN_MATCH 3          // minimum match lengde for å gi meninig
+
+// Generalisering av lengde til arrays
+#define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
+
+const char FILE_NAME_STRING[][41] = {
+    "opg6-kompr.lyx",                            // 34 kB lyx
+    "Twenty_thousand_leagues_under_the_sea.txt", // 595 kB txt
+    "diverse.txt",                               // forelesning 17 kB txt
+    "diverse.lyx",                               // forelesning 179 kB lyx
+    "enwik8.txt",                                // 100 MB txt
+    "test.txt"};
+
+const char *getFileName(int t)
+{
+  return FILE_NAME_STRING[t];
+}
+
+// Compare Arrays of strings
+bool isInArr(const char *str)
+{
+  int len = sizeof(FILE_NAME_STRING) / sizeof(FILE_NAME_STRING[0]);
+  for (int i = 0; i < len; i++)
+  {
+    if (strcmp(FILE_NAME_STRING[i], str) == 0)
+    {
+      return true;
+    }
+  }
+  return false;
+}
 
 struct Match
 {
@@ -75,14 +106,12 @@ size_t lzCompress(uint8_t *input, uint32_t inputSize, struct LZtoken *output)
   return outputPosition;
 }
 
-// Chatta opplegg
 static void write_u16_le(FILE *filePointer, uint16_t value)
 {
   uint8_t bytes[2] = {(uint8_t)(value & 0xFF), (uint8_t)((value >> 8) & 0xFF)};
   fwrite(bytes, 1, 2, filePointer);
 }
 
-// Chatta opplegg
 static void write_u64_le(FILE *fp, uint64_t v)
 {
   uint8_t b[8];
@@ -119,6 +148,9 @@ int writeTokensToFile(const char *outputFileName,
   return 0;
 }
 
+/**
+Huffman-method
+**/
 struct HuffmannNode
 {
   uint16_t symbol;
@@ -147,211 +179,101 @@ struct DistanceCodeInfo
   u_int16_t baseLength;
 };
 
+static const uint16_t lenArrExtraBits[] = {
+    3, 11, 19, 35, 67, 131, 3};
+
 void getLengthCode(uint16_t length,
                    uint16_t *outCode,
                    uint8_t *outExtraBits,
                    uint16_t *outExtraValue)
 {
-  if (length == 258)
+  if (length < 3 || length > 258)
   {
-    *outCode = 285;
+    printf("Invalid length: %d\n", length);
+    *outCode = 0;
     *outExtraBits = 0;
     *outExtraValue = 0;
     return;
   }
 
-  uint8_t extraBits;
   if (length <= 10)
   {
-    extraBits = 0;
+    *outCode = 257 + (length - 3);
+    *outExtraBits = 0;
+    *outExtraValue = 0;
   }
-  else if (length <= 18)
+  else if (length == 258)
   {
-    extraBits = 1;
-  }
-  else if (length <= 34)
-  {
-    extraBits = 2;
-  }
-  else if (length <= 66)
-  {
-    extraBits = 3;
-  }
-  else if (length <= 130)
-  {
-    extraBits = 4;
+    *outCode = 285;
+    *outExtraBits = 0;
+    *outExtraValue = 0;
   }
   else
   {
-    extraBits = 5;
-  }
+    static const struct
+    {
+      uint16_t base;
+      uint8_t bits;
+      uint16_t code_start;
+    } ranges[] = {
+        {11, 1, 265},
+        {13, 1, 266},
+        {15, 1, 267},
+        {17, 1, 268},
+        {19, 2, 269},
+        {23, 2, 270},
+        {27, 2, 271},
+        {31, 2, 272},
+        {35, 3, 273},
+        {43, 3, 274},
+        {51, 3, 275},
+        {59, 3, 276},
+        {67, 4, 277},
+        {83, 4, 278},
+        {99, 4, 279},
+        {115, 4, 280},
+        {131, 5, 281},
+        {163, 5, 282},
+        {195, 5, 283},
+        {227, 5, 284},
+    };
 
-  uint16_t base;
-  switch (extraBits)
-  {
-  case 0:
-    base = 3;
-    break;
-  case 1:
-    base = 11;
-    break;
-  case 2:
-    base = 19;
-    break;
-  case 3:
-    base = 35;
-    break;
-  case 4:
-    base = 67;
-    break;
-  case 5:
-    base = 131;
-    break;
-  default:
-    base = 3;
-    break;
+    for (int i = 0; i < 20; i++)
+    {
+      if (length >= ranges[i].base &&
+          (i == 19 || length < ranges[i + 1].base))
+      {
+        *outCode = ranges[i].code_start +
+                   ((length - ranges[i].base) >> ranges[i].bits);
+        *outExtraBits = ranges[i].bits;
+        *outExtraValue = (length - ranges[i].base) & ((1 << ranges[i].bits) - 1);
+        break;
+      }
+    }
   }
-
-  uint16_t code;
-  if (extraBits == 0)
-  {
-    code = 257 + (length - base);
-  }
-  else
-  {
-    uint16_t offset = length - base;
-    uint16_t groupSize = (1 << extraBits);
-    uint16_t codeOffset = offset / groupSize;
-    code = 265 + (extraBits - 1) * 4 + codeOffset;
-  }
-
-  uint16_t extraValue = 0;
-  if (extraBits > 0)
-  {
-    uint16_t groupSize = (1 << extraBits);
-    uint16_t offset = length - base;
-    extraValue = offset % groupSize;
-  }
-
-  *outCode = code;
-  *outExtraBits = extraBits;
-  *outExtraValue = extraValue;
 }
+
+// List of base values
+static const uint16_t extraBitsArr[] = {
+    1, 5, 9, 17,
+    33, 65, 129, 257,
+    513, 1025, 2049, 4097,
+    8193, 16383, 1};
 
 void getDistanceCode(uint16_t distance,
                      uint16_t *outCode,
                      uint8_t *outExtraBits,
                      uint16_t *outExtraValue)
 {
-  uint8_t extraBits;
-  if (distance <= 4)
-  {
-    extraBits = 0;
-  }
-  else if (distance <= 8)
-  {
-    extraBits = 1;
-  }
-  else if (distance <= 16)
-  {
-    extraBits = 2;
-  }
-  else if (distance <= 32)
-  {
-    extraBits = 3;
-  }
-  else if (distance <= 64)
-  {
-    extraBits = 4;
-  }
-  else if (distance <= 128)
-  {
-    extraBits = 5;
-  }
-  else if (distance <= 256)
-  {
-    extraBits = 6;
-  }
-  else if (distance <= 512)
-  {
-    extraBits = 7;
-  }
-  else if (distance <= 1024)
-  {
-    extraBits = 8;
-  }
-  else if (distance <= 2048)
-  {
-    extraBits = 9;
-  }
-  else if (distance <= 4096)
-  {
-    extraBits = 10;
-  }
-  else if (distance <= 8192)
-  {
-    extraBits = 11;
-  }
-  else if (distance <= 16384)
-  {
-    extraBits = 12;
-  }
-  else
-  {
-    extraBits = 13;
-  }
+  uint8_t e = 0;
+  while (e + 1u < ARRAY_LEN(extraBitsArr) && distance >= extraBitsArr[e + 1])
+    e++;
+  uint8_t extraBits = e;
 
-  uint16_t base;
-  switch (extraBits)
-  {
-  case 0:
-    base = 1;
-    break;
-  case 1:
-    base = 5;
-    break;
-  case 2:
-    base = 9;
-    break;
-  case 3:
-    base = 17;
-    break;
-  case 4:
-    base = 33;
-    break;
-  case 5:
-    base = 65;
-    break;
-  case 6:
-    base = 129;
-    break;
-  case 7:
-    base = 257;
-    break;
-  case 8:
-    base = 513;
-    break;
-  case 9:
-    base = 1025;
-    break;
-  case 10:
-    base = 2049;
-    break;
-  case 11:
-    base = 4097;
-    break;
-  case 12:
-    base = 8193;
-    break;
-  case 13:
-    base = 16385;
-    break;
-  default:
-    base = 1;
-    break;
-  }
-
+  uint16_t base = extraBitsArr[e];
+  uint16_t extraValue = 0;
   uint16_t code;
+
   if (extraBits == 0)
   {
     code = distance - base; // 0-3
@@ -362,14 +284,6 @@ void getDistanceCode(uint16_t distance,
     uint16_t groupSize = (1 << extraBits);
     uint16_t codeOffset = offset / groupSize;
     code = 4 + (extraBits - 1) * 2 + codeOffset;
-  }
-
-  uint16_t extraValue = 0;
-  if (extraBits > 0)
-  {
-    uint16_t groupSize = (1 << extraBits);
-    uint16_t offset = distance - base;
-    extraValue = offset % groupSize;
   }
 
   *outCode = code;
@@ -582,146 +496,51 @@ void writeCodeLengths(FILE *filePointer, struct HuffmannCode *codes, size_t coun
     fputc(codes[i].length, filePointer);
   }
 }
-void writeDeflateAlgoCompressed(const char *filename,
-                                struct LZtoken *tokens,
-                                size_t tokenCount,
-                                struct HuffmannCode *literalCodes,
-                                struct HuffmannCode *distCodes,
-                                uint64_t originalSize)
+// delfate = LZ77 + huffmann
+void writeDeflateAlgoCompressed(const char *filename, struct LZtoken *tokens, size_t tokenCount, struct HuffmannCode *literalCodes, struct HuffmannCode *distCodes, uint64_t originalSize)
 {
   FILE *filePointer = fopen(filename, "wb");
-  if (!filePointer)
-  {
-    perror("fopen deflate output");
-    return;
-  }
 
-  // 1) Header: original size
   write_u64_le(filePointer, originalSize);
 
-  // 2) Bare kodelengdene (0..15) fra eksisterende tabeller
-  uint8_t lit_len[286], dist_len[30];
-  for (int i = 0; i < 286; i++)
-    lit_len[i] = literalCodes[i].length;
-  for (int i = 0; i < 30; i++)
-    dist_len[i] = distCodes[i].length;
-
-  // (valgfritt) verifiser maks 15
-  for (int i = 0; i < 286; i++)
-    if (lit_len[i] > 15)
-    {
-      fprintf(stderr, "Literal len>15\n");
-      exit(1);
-    }
-  for (int i = 0; i < 30; i++)
-    if (dist_len[i] > 15)
-    {
-      fprintf(stderr, "Dist len>15\n");
-      exit(1);
-    }
-
-  // 3) Skriv kodelengder (uendret format)
   writeCodeLengths(filePointer, literalCodes, 286);
   writeCodeLengths(filePointer, distCodes, 30);
 
-  // 4) Bygg KANONISKE MSB-ordnede koder fra lengdene (RFC1951-metoden)
-  uint32_t lit_code_msb[286] = {0}, dist_code_msb[30] = {0};
-  {
-    int count[16] = {0};
-    uint32_t first[16] = {0}, next[16] = {0};
-    for (int i = 0; i < 286; i++)
-      if (lit_len[i])
-        count[lit_len[i]]++;
-    for (int l = 1; l <= 15; l++)
-    {
-      first[l] = ((first[l - 1] + count[l - 1]) << 1);
-    }
-    for (int l = 0; l <= 15; l++)
-      next[l] = first[l];
-    for (int s = 0; s < 286; s++)
-      if (lit_len[s])
-        lit_code_msb[s] = next[lit_len[s]]++;
-  }
-  {
-    int count[16] = {0};
-    uint32_t first[16] = {0}, next[16] = {0};
-    for (int i = 0; i < 30; i++)
-      if (dist_len[i])
-        count[dist_len[i]]++;
-    for (int l = 1; l <= 15; l++)
-    {
-      first[l] = ((first[l - 1] + count[l - 1]) << 1);
-    }
-    for (int l = 0; l <= 15; l++)
-      next[l] = first[l];
-    for (int s = 0; s < 30; s++)
-      if (dist_len[s])
-        dist_code_msb[s] = next[dist_len[s]]++;
-  }
+  struct BitWriter bitwriter;
+  bitWriterInit(&bitwriter, filePointer);
 
-  // 5) Konverter til LSB-first for writeBits (som sender LSB først)
-  uint32_t lit_code_lsb[286] = {0}, dist_code_lsb[30] = {0};
-  for (int s = 0; s < 286; s++)
-  {
-    uint8_t L = lit_len[s];
-    if (!L)
-      continue;
-    uint32_t msb = lit_code_msb[s], lsb = 0;
-    for (uint8_t i = 0; i < L; i++)
-    {
-      uint32_t bit = (msb >> (L - 1 - i)) & 1u;
-      lsb |= bit << i;
-    }
-    lit_code_lsb[s] = lsb;
-  }
-  for (int s = 0; s < 30; s++)
-  {
-    uint8_t L = dist_len[s];
-    if (!L)
-      continue;
-    uint32_t msb = dist_code_msb[s], lsb = 0;
-    for (uint8_t i = 0; i < L; i++)
-    {
-      uint32_t bit = (msb >> (L - 1 - i)) & 1u;
-      lsb |= bit << i;
-    }
-    dist_code_lsb[s] = lsb;
-  }
-
-  // 6) Skriv bitstrøm med KANONISKE koder
-  struct BitWriter bw;
-  bitWriterInit(&bw, filePointer);
   for (size_t i = 0; i < tokenCount; i++)
   {
+    // Hvis literal
     if (tokens[i].type == 0)
     {
-      uint8_t lit = tokens[i].literalOrMatch.literal;
-      writeBits(&bw, lit_code_lsb[lit], lit_len[lit]);
+      uint8_t literal = tokens[i].literalOrMatch.literal;
+      writeBits(&bitwriter, literalCodes[literal].bits, literalCodes[literal].length);
     }
     else
     {
       uint16_t length = tokens[i].literalOrMatch.match.length;
       uint16_t distance = tokens[i].literalOrMatch.match.distance;
 
-      uint16_t lenCode, lenExtraVal;
-      uint8_t lenExtraBits;
-      getLengthCode(length, &lenCode, &lenExtraBits, &lenExtraVal);
-      writeBits(&bw, lit_code_lsb[lenCode], lit_len[lenCode]);
-      if (lenExtraBits)
-        writeBits(&bw, lenExtraVal, lenExtraBits);
+      uint16_t lengthCode, lengthExtraValues;
+      uint8_t lengthExtraBits;
+      getLengthCode(length, &lengthCode, &lengthExtraBits, &lengthExtraValues);
 
-      uint16_t distCode, distExtraVal;
+      uint16_t distCode, distExtraValues;
       uint8_t distExtraBits;
-      getDistanceCode(distance, &distCode, &distExtraBits, &distExtraVal);
-      writeBits(&bw, dist_code_lsb[distCode], dist_len[distCode]);
-      if (distExtraBits)
-        writeBits(&bw, distExtraVal, distExtraBits);
+      getDistanceCode(distance, &distCode, &distExtraBits, &distExtraValues);
+
+      writeBits(&bitwriter, literalCodes[lengthCode].bits, literalCodes[lengthCode].length);
+      if (lengthExtraBits > 0)
+        writeBits(&bitwriter, lengthExtraValues, lengthExtraBits);
+
+      writeBits(&bitwriter, distCodes[distCode].bits, distCodes[distCode].length);
+      if (distExtraBits > 0)
+        writeBits(&bitwriter, distExtraValues, distExtraBits);
     }
   }
-  // END (256)
-  writeBits(&bw, lit_code_lsb[256], lit_len[256]);
-
-  bitWriterFlush(&bw);
+  writeBits(&bitwriter, literalCodes[256].bits, literalCodes[256].length);
+  bitWriterFlush(&bitwriter);
   fclose(filePointer);
 }
 
@@ -747,12 +566,20 @@ static long int findFileSize(const char *fileName)
   return fileSize;
 }
 
-int main(int argc, char** argv) {
-  if (argc != 2) {
-	fprintf(stderr, "Usage %s <inputfile> \n", argv[0]);
-	return 1;
+int main(int argc, char **argv)
+{
+  if (argc != 2)
+  {
+    printf("Error: You did not pass in an argument/file to compress");
+    return 1;
   }
+
   const char *inputFileName = argv[1];
+  if (!isInArr(inputFileName))
+  {
+    printf("Error: Your argument \"%s\" is not in list of valid filenames", inputFileName);
+    return 1;
+  }
 
   const char *outputFileName = "output.komprimert.lz";
 
