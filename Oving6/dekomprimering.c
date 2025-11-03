@@ -123,7 +123,7 @@ static int trie_decode(BitReader *br, const HuffTrie *t)
   }
 }
 
-// 
+
 static void build_decoder_from_lengths(const uint8_t *lengths, int n, HuffTrie *trie)
 {
   int count[MAX_BITS + 1] = {0};
