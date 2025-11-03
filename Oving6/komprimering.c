@@ -89,22 +89,38 @@ static void write_u64_le(FILE *fp, uint64_t v)
   fwrite(b, 1, 8, fp);
 }
 
-int writeTokensToFile(const char *outputFileName,
-                      const struct LZtoken *tokens,
-                      size_t tokenCount,
-                      uint64_t originalSize)
+int writeTokensToFile(const char *outputFileName,const struct LZtoken *tokens, size_t tokenCount, uint64_t originalSize)
 {
   FILE *filePointer = fopen(outputFileName, "wb");
+  if (!filePointer)
+  {
+    perror("fopen output");
+    return -1;
+  }
+
+  if (ferror(filePointer))
+  {
+    fclose(filePointer);
+    return -1;
+  }
 
   write_u64_le(filePointer, originalSize);
   write_u64_le(filePointer, (uint64_t)tokenCount);
 
   for (size_t i = 0; i < tokenCount; i++)
   {
-    fputc(tokens[i].type, filePointer);
+    if (fputc(tokens[i].type, filePointer) == EOF)
+    {
+      fclose(filePointer);
+      return -1;
+    }
     if (tokens[i].type == 0)
     {
-      fputc(tokens[i].literalOrMatch.literal, filePointer);
+      if (fputc(tokens[i].literalOrMatch.literal, filePointer) == EOF)
+      {
+        fclose(filePointer);
+        return -1;
+      }
     }
     else
     {
@@ -113,13 +129,12 @@ int writeTokensToFile(const char *outputFileName,
     }
   }
 
-  fclose(filePointer);
+  if (fclose(filePointer) == EOF)
+    return -1;
   return 0;
 }
 
-/**
- * Use long because one of the file is 100MB
- */
+//bruker long fordi en av filene er større enn 100 mb
 static long int findFileSize(const char *fileName)
 {
   FILE *filePointer;
@@ -139,39 +154,72 @@ static long int findFileSize(const char *fileName)
   return fileSize;
 }
 
-int main()
+int main(int argc, char **argv)
 {
-  // oblig file
-  const char *inputFileName = "diverse.lyx";
-  const char *outputFileName = "diverse.lz";
+  if (argc != 3)
+  {
+    fprintf(stderr, "Bruk: %s <input> <output.lz>\n", argv[0]);
+    return 2;
+  }
+  const char *inputFileName = argv[1];
+  const char *outputFileName = argv[2];
 
   long int inputFileSize = findFileSize(inputFileName);
-  (inputFileSize != -1) ? printf("File size: %ld bytes\n", inputFileSize) : printf("File is emtpy\n");
+  if (inputFileSize < 0)
+  {
+    fprintf(stderr, "Fant ikke input: %s\n", inputFileName);
+    return 1;
+  }
 
   FILE *filePointer = fopen(inputFileName, "rb");
   if (!filePointer)
-    perror("fopen input\n");
+  {
+    perror("fopen input");
+    return 1;
+  }
 
   uint8_t *inputBuffer = (uint8_t *)malloc((size_t)inputFileSize);
+  if (!inputBuffer)
+  {
+    fprintf(stderr, "malloc inputBuffer feilet\n");
+    fclose(filePointer);
+    return 1;
+  }
 
   size_t readCount = fread(inputBuffer, 1, (size_t)inputFileSize, filePointer);
-  if (readCount != (size_t)inputFileSize)
-    printf("Didnt read\n");
-
   fclose(filePointer);
+  if (readCount != (size_t)inputFileSize)
+  {
+    fprintf(stderr, "fread leste for lite\n");
+    free(inputBuffer);
+    return 1;
+  }
 
   struct LZtoken *tokens = (struct LZtoken *)malloc((size_t)inputFileSize * sizeof(struct LZtoken));
   if (!tokens)
-    fprintf(stderr, "malloc tokens failed\n");
+  {
+    fprintf(stderr, "malloc tokens feilet\n");
+    free(inputBuffer);
+    return 1;
+  }
 
   size_t tokenCount = lzCompress(inputBuffer, (uint32_t)inputFileSize, tokens);
+  printf("File size: %ld bytes\n", inputFileSize);
   printf("Produced %zu tokens\n", tokenCount);
 
-  writeTokensToFile(outputFileName, tokens, tokenCount, (uint64_t)inputFileSize);
+  if (writeTokensToFile(outputFileName, tokens, tokenCount, (uint64_t)inputFileSize) != 0)
+  {
+    fprintf(stderr, "Skriving til %s feilet\n", outputFileName);
+    free(tokens);
+    free(inputBuffer);
+    return 1;
+  }
 
   printf("Wrote compressed file to: %s\n", outputFileName);
   long int outputFileSize = findFileSize(outputFileName);
-  (outputFileSize != -1) ? printf("File size: %ld bytes\n", outputFileSize) : printf("File is emtpy\n");
+  if (outputFileSize >= 0)
+    printf("File size: %ld bytes\n", outputFileSize);
+
   free(tokens);
   free(inputBuffer);
   return 0;
