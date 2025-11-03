@@ -11,15 +11,8 @@
 #define LOOKAHEAD_SIZE 258  // max match length (derfor uint16_t)
 #define MIN_MATCH 3         // minimum match lengde for å gi meninig
 
-// Can maybe use later ???
-/*typedef enum {
-  OPG_6,
-  JULES_VERNE,
-  FL_TXT,
-  FL_LYX,
-  ENWIK8,
-  TEST
-} FileName;*/
+// Generalisering av lengde til arrays
+#define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
 const char FILE_NAME_STRING[][41] = {
   "opg6-kompr.lynx",                            // 34 kB lyx
@@ -176,90 +169,39 @@ struct DistanceCodeInfo
   u_int16_t baseLength;
 };
 
+static const uint16_t lenArrExtraBits[] = {
+	3, 11, 19, 35, 67, 131, 3
+};
+
 void getLengthCode(uint16_t length,
                    uint16_t *outCode,
                    uint8_t *outExtraBits,
-                   uint16_t *outExtraValue)
-{
-  if (length == 258)
-  {
+                   uint16_t *outExtraValue) {
+  if (length == 258) {
     *outCode = 285;
     *outExtraBits = 0;
     *outExtraValue = 0;
     return;
   }
 
-  uint8_t extraBits;
-  if (length <= 10)
-  {
-    extraBits = 0;
-  }
-  else if (length <= 18)
-  {
-    extraBits = 1;
-  }
-  else if (length <= 34)
-  {
-    extraBits = 2;
-  }
-  else if (length <= 66)
-  {
-    extraBits = 3;
-  }
-  else if (length <= 130)
-  {
-    extraBits = 4;
-  }
-  else
-  {
-    extraBits = 5;
-  }
+  uint16_t e = 0;
+  while (e + 1u < ARRAY_LEN(lenArrExtraBits) &&
+		length >= lenArrExtraBits[e + 1]) ++e;
 
-  uint16_t base;
-  switch (extraBits)
-  {
-  case 0:
-    base = 3;
-    break;
-  case 1:
-    base = 11;
-    break;
-  case 2:
-    base = 19;
-    break;
-  case 3:
-    base = 35;
-    break;
-  case 4:
-    base = 67;
-    break;
-  case 5:
-    base = 131;
-    break;
-  default:
-    base = 3;
-    break;
-  }
-
+  uint16_t base = lenArrExtraBits[e];
+  uint16_t extraBits = 0;
+  uint16_t extraValue = 0;
   uint16_t code;
-  if (extraBits == 0)
-  {
+
+  if (extraBits == 0) {
     code = 257 + (length - base);
-  }
-  else
-  {
+  } else {
     uint16_t offset = length - base;
     uint16_t groupSize = (1 << extraBits);
     uint16_t codeOffset = offset / groupSize;
-    code = 265 + (extraBits - 1) * 4 + codeOffset;
-  }
 
-  uint16_t extraValue = 0;
-  if (extraBits > 0)
-  {
-    uint16_t groupSize = (1 << extraBits);
-    uint16_t offset = length - base;
-    extraValue = offset % groupSize;
+	extraValue = offset % groupSize;
+    code = 265 + (extraBits - 1) * 4 + codeOffset;
   }
 
   *outCode = code;
@@ -267,31 +209,13 @@ void getLengthCode(uint16_t length,
   *outExtraValue = extraValue;
 }
 
-const typedef enum {
-	BASE_0 = 1,
-	BASE_1 = 5,
-	BASE_2 = 9,
-	BASE_3 = 17,
-	BASE_4 = 33,
-	BASE_5 = 65,
-	BASE_6 = 129,
-	BASE_7 = 257,
-	BASE_8 = 513,
-	BASE_9 = 1025,
-	BASE_10 = 2049,
-	BASE_11 = 4097,
-	BASE_12 = 8193,
-	BASE_13 = 16383
-} Base;
-
+// List of base values
 static const uint16_t extraBitsArr[] = {
-	BASE_0, BASE_1, BASE_2, BASE_3,
-	BASE_4, BASE_5, BASE_6, BASE_7,
-	BASE_8,	BASE_9, BASE_10, BASE_11,
-	BASE_12, BASE_13, 1
+	1, 5, 9, 17,
+	33, 65, 129, 257,
+	513, 1025, 2049, 4097,
+	8193, 16383, 1
 };
-
-#define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
 void getDistanceCode(uint16_t distance,
                      uint16_t *outCode,
