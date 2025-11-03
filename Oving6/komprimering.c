@@ -298,7 +298,7 @@ struct PriorityQueue
 struct PriorityQueue *priorityQueueInit(size_t capacity)
 {
   struct PriorityQueue *priorityQueue = malloc(sizeof(struct PriorityQueue));
-  priorityQueue->nodes = malloc(capacity * sizeof(struct HuffmannNode));
+  priorityQueue->nodes = malloc(capacity * sizeof *priorityQueue->nodes);
   priorityQueue->capacity = capacity;
   priorityQueue->count = 0;
   return priorityQueue;
@@ -529,9 +529,9 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  // oblig file
-  const char *outputFileName = "output.lz";
+  const char *outputFileName = "output.komprimert.lz";
 
+  printf("Input file: %s\n", inputFileName);
   long int inputFileSize = findFileSize(inputFileName);
   // (inputFileSize != -1) ? printf("File size: %ld bytes\n", inputFileSize) : printf("File is emtpy\n");
 
@@ -574,7 +574,7 @@ int main(int argc, char** argv) {
   generateBitCodes(literalTree, literalCodes, 0, 0);
   generateBitCodes(distTree, distCodes, 0, 0);
 
-  const char *deflateOutputFile = "diverse.komprimert";
+  const char *deflateOutputFile = "output.komprimert.deflate";
 
   writeDeflateAlgoCompressed(deflateOutputFile,
                              tokens,
