@@ -747,16 +747,12 @@ static long int findFileSize(const char *fileName)
   return fileSize;
 }
 
-int main()
-{
-  // oblig file
-  const char *inputFileName = "diverse.lyx";
-
-  // ------------------------
-  // const char *inputFileName = "diverse.txt";
-  // const char *inputFileName = "Twenty_thousand_leagues_under_the_sea.txt";
-  // const char *inputFileName = "opg6-kompr.lyx";
-  // ------------------------
+int main(int argc, char** argv) {
+  if (argc != 2) {
+	fprintf(stderr, "Usage %s <inputfile> \n", argv[0]);
+	return 1;
+  }
+  const char *inputFileName = argv[1];
 
   const char *outputFileName = "output.komprimert.lz";
 
@@ -772,7 +768,7 @@ int main()
 
   size_t readCount = fread(inputBuffer, 1, (size_t)inputFileSize, filePointer);
   if (readCount != (size_t)inputFileSize)
-    printf("Didnt read\n");
+    printf("Didn't read\n");
 
   fclose(filePointer);
 
