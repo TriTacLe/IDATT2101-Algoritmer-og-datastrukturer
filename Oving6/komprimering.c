@@ -432,7 +432,7 @@ struct PriorityQueue
 struct PriorityQueue *priorityQueueInit(size_t capacity)
 {
   struct PriorityQueue *priorityQueue = malloc(sizeof(struct PriorityQueue));
-  priorityQueue->nodes = malloc(capacity * sizeof(struct HuffmannNode));
+  priorityQueue->nodes = malloc(capacity * sizeof *priorityQueue->nodes);
   priorityQueue->capacity = capacity;
   priorityQueue->count = 0;
   return priorityQueue;
@@ -700,7 +700,7 @@ int main()
   generateBitCodes(literalTree, literalCodes, 0, 0);
   generateBitCodes(distTree, distCodes, 0, 0);
 
-  const char *deflateOutputFile = "diverse.komprimert";
+  const char *deflateOutputFile = "diverse.lyx.komprimert";
 
   writeDeflateAlgoCompressed(deflateOutputFile,
                              tokens,
