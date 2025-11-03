@@ -32,7 +32,7 @@ static int read_u64_le(FILE *fp, uint64_t *out)
   return 0;
 }
 
-//bitleser
+// bit reader
 typedef struct
 {
   FILE *fp;
@@ -52,7 +52,7 @@ static uint32_t br_read_bits(BitReader *br, uint8_t n)
     int c = fgetc(br->fp);
     if (c == EOF)
     {
-      fprintf(stderr, "Uventet EOF i bitstrøm\n");
+      fprintf(stderr, "Unexpected EOF in bitstream\n");
       exit(1);
     }
     br->buf |= ((uint32_t)(uint8_t)c) << br->bits;
@@ -64,7 +64,7 @@ static uint32_t br_read_bits(BitReader *br, uint8_t n)
   return val;
 }
 
-// LSB-vandring
+// LSB traversal
 typedef struct
 {
   int left, right;
@@ -117,12 +117,11 @@ static int trie_decode(BitReader *br, const HuffTrie *t)
     cur = b ? t->nodes[cur].right : t->nodes[cur].left;
     if (cur < 0)
     {
-      fprintf(stderr, "Ugyldig Huffman-bitsekvens\n");
+      fprintf(stderr, "Invalid Huffman bit sequence\n");
       exit(1);
     }
   }
 }
-
 
 static void build_decoder_from_lengths(const uint8_t *lengths, int n, HuffTrie *trie)
 {
@@ -135,7 +134,7 @@ static void build_decoder_from_lengths(const uint8_t *lengths, int n, HuffTrie *
     {
       if (L > MAX_BITS)
       {
-        fprintf(stderr, "Kode for lang\n");
+        fprintf(stderr, "Code too long\n");
         exit(1);
       }
       count[L]++;
@@ -154,8 +153,8 @@ static void build_decoder_from_lengths(const uint8_t *lengths, int n, HuffTrie *
     uint8_t L = lengths[s];
     if (!L)
       continue;
-    uint32_t msb = next[L]++; // MSB-ordnet
-    // snu msb->lsb over L biter
+    uint32_t msb = next[L]++; // MSB-ordered
+    // reverse msb->lsb over L bits
     uint32_t lsb = 0;
     for (uint8_t i = 0; i < L; i++)
     {
@@ -166,7 +165,7 @@ static void build_decoder_from_lengths(const uint8_t *lengths, int n, HuffTrie *
   }
 }
 
-// length/distance-tabeller
+// length/distance tables
 typedef struct
 {
   uint16_t base;
@@ -192,7 +191,7 @@ int main(int argc, char **argv)
 {
   if (argc < 3)
   {
-    fprintf(stderr, "Bruk: %s input.deflate output\n", argv[0]);
+    fprintf(stderr, "Usage: %s input.deflate output\n", argv[0]);
     return 1;
   }
   const char *inpath = argv[1], *outpath = argv[2];
@@ -200,14 +199,14 @@ int main(int argc, char **argv)
   FILE *fp = fopen(inpath, "rb");
   if (!fp)
   {
-    fprintf(stderr, "Kunne ikke åpne %s: %s\n", inpath, strerror(errno));
+    fprintf(stderr, "Could not open %s: %s\n", inpath, strerror(errno));
     return 1;
   }
 
   uint64_t originalSize = 0;
   if (read_u64_le(fp, &originalSize) < 0)
   {
-    fprintf(stderr, "Feil i header (originalSize)\n");
+    fprintf(stderr, "Error in header (originalSize)\n");
     return 1;
   }
 
@@ -215,15 +214,36 @@ int main(int argc, char **argv)
   for (int i = 0; i < LIT_COUNT; i++)
     if (read_u8(fp, &lit_len[i]) < 0)
     {
-      fprintf(stderr, "EOF i literal kodelengder\n");
+      fprintf(stderr, "EOF while reading literal code lengths\n");
       return 1;
     }
   for (int i = 0; i < DIST_COUNT; i++)
     if (read_u8(fp, &dist_len[i]) < 0)
     {
-      fprintf(stderr, "EOF i dist kodelengder\n");
+      fprintf(stderr, "EOF while reading distance code lengths\n");
       return 1;
     }
+
+  // --- SANITY right after header lengths are read ---
+  int lit_sum = 0, dist_sum = 0;
+  for (int i = 0; i < LIT_COUNT; i++)
+    lit_sum += (lit_len[i] != 0);
+  for (int i = 0; i < DIST_COUNT; i++)
+    dist_sum += (dist_len[i] != 0);
+
+  fprintf(stderr, "[DEBUG] lit_sum=%d, dist_sum=%d, lit_len[256]=%u\n",
+          lit_sum, dist_sum, (unsigned)lit_len[256]);
+
+  if (lit_len[256] == 0)
+  {
+    fprintf(stderr, "Error: END symbol (256) has code length 0 in header.\n");
+    return 1;
+  }
+  if (lit_sum == 0)
+  {
+    fprintf(stderr, "Error: literal table is empty.\n");
+    return 1;
+  }
 
   HuffTrie litTrie, distTrie;
   build_decoder_from_lengths(lit_len, LIT_COUNT, &litTrie);
@@ -257,7 +277,7 @@ int main(int argc, char **argv)
 
     if (sym < 257 || sym > 285)
     {
-      fprintf(stderr, "Ugyldig lengdesymbol %d\n", sym);
+      fprintf(stderr, "Invalid length symbol %d\n", sym);
       return 1;
     }
     uint16_t length = 0;
@@ -272,10 +292,16 @@ int main(int argc, char **argv)
       length = (uint16_t)(base + add);
     }
 
+    if (dist_sum == 0)
+    {
+      fprintf(stderr, "Error: bitstream requests a distance, but distance table is empty (no distance codes in header).\n");
+      return 1;
+    }
+
     int dsym = trie_decode(&br, &distTrie);
     if (dsym < 0 || dsym >= DIST_COUNT)
     {
-      fprintf(stderr, "Ugyldig distsymbol %d\n", dsym);
+      fprintf(stderr, "Invalid distance symbol %d\n", dsym);
       return 1;
     }
     uint16_t distance = 0;
@@ -285,8 +311,9 @@ int main(int argc, char **argv)
       uint32_t add = eb ? br_read_bits(&br, eb) : 0;
       distance = (uint16_t)(base + add);
     }
-    if (distance == 0 || distance > outlen) {
-      fprintf(stderr, "Ugyldig distance %u ved pos %zu\n", distance, outlen);
+    if (distance == 0 || distance > outlen)
+    {
+      fprintf(stderr, "Invalid distance %u at position %zu\n", distance, outlen);
       return 1;
     }
 
@@ -307,13 +334,13 @@ int main(int argc, char **argv)
 
   if (originalSize && outlen != (size_t)originalSize)
   {
-    fprintf(stderr, "Advarsel: utlengde (%zu) != originalSize (%llu)\n", outlen, (unsigned long long)originalSize);
+    fprintf(stderr, "Warning: output length (%zu) != originalSize (%llu)\n", outlen, (unsigned long long)originalSize);
   }
 
   FILE *fo = fopen(outpath, "wb");
   if (!fo)
   {
-    fprintf(stderr, "Kunne ikke åpne %s: %s\n", outpath, strerror(errno));
+    fprintf(stderr, "Could not open %s: %s\n", outpath, strerror(errno));
     return 1;
   }
   fwrite(out, 1, outlen, fo);
@@ -322,7 +349,6 @@ int main(int argc, char **argv)
   free(litTrie.nodes);
   free(distTrie.nodes);
 
-  printf("OK. Skrev %zu bytes til %s\n", outlen, outpath);
-
+  printf("OK. Wrote %zu bytes to %s\n", outlen, outpath);
   return 0;
 }
