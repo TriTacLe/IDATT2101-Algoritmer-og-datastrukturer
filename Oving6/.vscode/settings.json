@@ -66,6 +66,7 @@
     "unordered_map": "c",
     "unordered_set": "c",
     "__locale": "c",
-    "bitset": "c"
+    "bitset": "c",
+    "random": "c"
   }
 }
