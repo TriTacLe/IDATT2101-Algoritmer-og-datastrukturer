@@ -13,32 +13,32 @@
 // Generalisering av lengde til arrays
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
-const char FILE_NAME_STRING[][41] = {
-    "opg6-kompr.lyx",                            // 34 kB lyx
-    "Twenty_thousand_leagues_under_the_sea.txt", // 595 kB txt
-    "diverse.txt",                               // forelesning 17 kB txt
-    "diverse.lyx",                               // forelesning 179 kB lyx
-    "enwik8.txt",                                // 100 MB txt
-    "test.txt"};
+// const char FILE_NAME_STRING[][41] = {
+//     "opg6-kompr.lyx",                            // 34 kB lyx
+//     "Twenty_thousand_leagues_under_the_sea.txt", // 595 kB txt
+//     "diverse.txt",                               // forelesning 17 kB txt
+//     "diverse.lyx",                               // forelesning 179 kB lyx
+//     "enwik8.txt"                                 // 100 MB txt
+//     "julesverne.txt"};
 
-const char *getFileName(int t)
-{
-  return FILE_NAME_STRING[t];
-}
+// const char *getFileName(int t)
+// {
+//   return FILE_NAME_STRING[t];
+// }
 
 // Compare Arrays of strings
-bool isInArr(const char *str)
-{
-  int len = sizeof(FILE_NAME_STRING) / sizeof(FILE_NAME_STRING[0]);
-  for (int i = 0; i < len; i++)
-  {
-    if (strcmp(FILE_NAME_STRING[i], str) == 0)
-    {
-      return true;
-    }
-  }
-  return false;
-}
+// bool isInArr(const char *str)
+// {
+//   int len = sizeof(FILE_NAME_STRING) / sizeof(FILE_NAME_STRING[0]);
+//   for (int i = 0; i < len; i++)
+//   {
+//     if (strcmp(FILE_NAME_STRING[i], str) == 0)
+//     {
+//       return true;
+//     }
+//   }
+//   return false;
+// }
 
 struct Match
 {
@@ -595,11 +595,11 @@ int main(int argc, char **argv)
   }
 
   const char *inputFileName = argv[1];
-  if (!isInArr(inputFileName))
-  {
-    printf("Error: Your argument \"%s\" is not in list of valid filenames", inputFileName);
-    return 1;
-  }
+  // if (!isInArr(inputFileName))
+  // {
+  //   printf("Error: Your argument \"%s\" is not in list of valid filenames", inputFileName);
+  //   return 1;
+  // }
 
   const char *outputFileName = "output.komprimert.lz";
 
