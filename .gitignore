@@ -1,3 +1,7 @@
+# Oving 6
+output.komprimert.deflate
+output.komprimert.lz
+
 # Mac
 .DS_Store
 .env
