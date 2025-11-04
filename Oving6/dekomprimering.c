@@ -153,8 +153,7 @@ static void build_decoder_from_lengths(const uint8_t *lengths, int n, HuffTrie *
     uint8_t L = lengths[s];
     if (!L)
       continue;
-    uint32_t msb = next[L]++; // MSB-ordered
-    // reverse msb->lsb over L bits
+    uint32_t msb = next[L]++;
     uint32_t lsb = 0;
     for (uint8_t i = 0; i < L; i++)
     {
