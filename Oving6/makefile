@@ -1,17 +1,13 @@
 .PHONY: all kom dek clean check roundtrip
 
-COMPILER ?= gcc #clang?
-
+COMPILER ?= gcc
 TARGETKOM = komprimering
 TARGETDEK = dekomprimering
-
 SOURCEKOM = komprimering.c
 SOURCEDEK = dekomprimering.c
-
 FILE ?= diverse.lyx
-
 DEF_FILE := output.komprimert.deflate
-DEC_FILE := $(FILE).dec
+DEC_FILE := dekomprimert.fil  
 
 all: $(TARGETKOM) $(TARGETDEK)
 
@@ -27,10 +23,13 @@ kom: $(TARGETKOM)
 dek: $(TARGETDEK)
 	./$(TARGETDEK) $(DEF_FILE) $(DEC_FILE)
 
-roundtrip: all kom dek check
+roundtrip: all
+	@$(MAKE) kom FILE=$(FILE)
+	@$(MAKE) dek FILE=$(FILE)
+	@$(MAKE) check FILE=$(FILE)
 
 check:
-	@cmp -s $(FILE) $(DEC_FILE) && echo "OK, filene er like: $(FILE) == $(DEC_FILE)" || (echo "FEIL: filer er ulike" ; exit 1)
+	@cmp -s $(FILE) $(DEC_FILE) && echo "OK, filene er like: $(FILE) == $(DEC_FILE)" || (echo "FEIL, filene er ulike: $(FILE) ikke lik $(DEC_FILE)" ; exit 1)
 
 clean:
-	rm -f $(TARGETKOM) $(TARGETDEK) $(DEC_FILE)
+	rm -f $(TARGETKOM) $(TARGETDEK) *.dec output.komprimert.*
