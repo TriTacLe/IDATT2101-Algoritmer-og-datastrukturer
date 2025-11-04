@@ -11,7 +11,7 @@
 #define MIN_MATCH 3
 
 // Generalisering av lengde til arrays
-#define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
+// #define aRRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
 // const char FILE_NAME_STRING[][41] = {
 //     "opg6-kompr.lyx",                            // 34 kB lyx
@@ -594,9 +594,6 @@ void writeDeflateAlgoCompressed(const char *filename, struct LZtoken *tokens, si
   fclose(filePointer);
 }
 
-/**
- * Use long because one of the file is 100MB
- */
 static long int findFileSize(const char *fileName)
 {
   FILE *filePointer;
