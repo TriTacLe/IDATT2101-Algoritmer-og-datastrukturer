@@ -279,7 +279,6 @@ void countFrequencies(struct LZtoken *tokens,
                       uint32_t *literalFreq, // Array[286]
                       uint32_t *distFreq)    // Array[30]
 {
-  // Nullstill arrays
   for (int i = 0; i < 286; i++)
   {
     literalFreq[i] = 0;
@@ -309,14 +308,45 @@ void countFrequencies(struct LZtoken *tokens,
       uint8_t distExtraBits;
       getDistanceCode(distance, &distCode, &distExtraBits, &distExtra);
 
-      // Tell opp
       literalFreq[lenCode]++;
       distFreq[distCode]++;
     }
   }
 
-  // END marker (alltid én gang)
   literalFreq[256]++;
+
+  uint32_t minFreq;
+  if (token_count < 1000)
+  {
+    minFreq = 2;
+  }
+  else if (token_count < 10000)
+  {
+    minFreq = 4;
+  }
+  else if (token_count < 100000)
+  {
+    minFreq = 8;
+  }
+  else
+  {
+    minFreq = 16;
+  }
+  // For å unngå altfor lange huffmannkoder
+  for (int i = 0; i < 286; i++)
+  {
+    if (literalFreq[i] > 0 && literalFreq[i] < minFreq)
+    {
+      literalFreq[i] = minFreq;
+    }
+  }
+  for (int i = 0; i < 30; i++)
+  {
+    if (distFreq[i] > 0 && distFreq[i] < minFreq)
+    {
+      distFreq[i] = minFreq;
+    }
+  }
 }
 
 struct PriorityQueue

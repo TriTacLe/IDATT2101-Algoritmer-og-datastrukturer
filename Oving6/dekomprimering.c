@@ -224,15 +224,14 @@ int main(int argc, char **argv)
       return 1;
     }
 
-  // --- SANITY right after header lengths are read ---
   int lit_sum = 0, dist_sum = 0;
   for (int i = 0; i < LIT_COUNT; i++)
     lit_sum += (lit_len[i] != 0);
   for (int i = 0; i < DIST_COUNT; i++)
     dist_sum += (dist_len[i] != 0);
 
-  fprintf(stderr, "[DEBUG] lit_sum=%d, dist_sum=%d, lit_len[256]=%u\n",
-          lit_sum, dist_sum, (unsigned)lit_len[256]);
+  // fprintf(stderr, "[DEBUG] lit_sum=%d, dist_sum=%d, lit_len[256]=%u\n",
+  //         lit_sum, dist_sum, (unsigned)lit_len[256]);
 
   if (lit_len[256] == 0)
   {
