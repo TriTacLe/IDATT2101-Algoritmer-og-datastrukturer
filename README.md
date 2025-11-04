@@ -1,6 +1,12 @@
-# Ovinger-IDATT2101-Algoritmer-og-datastrukturer
+# Øvinger — IDATT2101 Algoritmer og datastrukturer
 
-Ovinger i emnet IDATT2101 Algoritmer og datastrukturer
-Stor takk til @shaktios og @MagnusNaessanGaarder for sine utrolige mektige bidrag i oppgave 6 der vi oppnådde 94.5$ komprimeringsrate
+Samling av obligatoriske øvingsoppgaver i emnet **IDATT2101 Algoritmer og datastrukturer**.
 
-Krav om å unngå filstruktur og ha helst så få filer som mulig. Derfor er det litt støgg struktur
+> **Merk:** Oppgavetekstene har krav om minimal filstruktur og færrest mulig filer. Repoet er derfor bevisst kompakt og kan fremstå noe ustrukturert.
+
+## Viktig!
+
+Stor takk til **@shaktios** og **@MagnusNaessanGaarder** for sterke bidrag i øving 6.  
+Vi oppnådde en **komprimeringsrate på 94,5 %** i den oppgaven og forhåpentligvis 3/3.
+
+---
