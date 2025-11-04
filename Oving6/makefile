@@ -7,7 +7,7 @@ SOURCEKOM = komprimering.c
 SOURCEDEK = dekomprimering.c
 FILE ?= diverse.lyx
 DEF_FILE := output.komprimert.deflate
-DEC_FILE := $(FILE).dec  
+DEC_FILE := diverse.lyx.dec  
 
 all: $(TARGETKOM) $(TARGETDEK)
 
