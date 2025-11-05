@@ -15,3 +15,6 @@ run: $(TARGET)
 
 clean:
 	rm -f $(TARGET)
+
+fjernAlt:
+	rm -f kanter.txt noder.txt
