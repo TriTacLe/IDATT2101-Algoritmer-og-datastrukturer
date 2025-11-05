@@ -1,20 +1,20 @@
-.PHONY: all kom dek clean check roundtrip
+.PHONY: all run clean 
 
-COMPILER ?= gcc
+COMPILER ?= javac
 CFLAGS = 
-TARGET = 
-SOURCE = .c
+TARGET = Main
+SOURCE = Main.java
 
 all: $(TARGET) 
 
 $(TARGET): $(SOURCE)
-	$(COMPILER) $(CFLAGS) $^ -o $@
+	$(COMPILER) $(SOURCE)
 
 run: $(TARGET)
-	./$(TARGET) 
+	$(COMPILER) $(TARGET)
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) 
 
-fjernAlt:
-	rm -f kanter.txt noder.txt
+rmInputFiles:
+	rm -f kanter.txt noder.txt interessepkt.txt

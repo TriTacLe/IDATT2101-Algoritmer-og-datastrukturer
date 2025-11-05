@@ -2,19 +2,46 @@
 noder.txt
 kanter.txt
 interessepkt.txt
+islandNoder.txt
+islandKanter.txt
+islandInteressepkt.txt
 
+*.class 
 # Oving 6
-# output.komprimert.deflate
-# output.komprimert.lz
-# diverse.lyx.dec
+output.komprimert.deflate
+output.komprimert.lz
+diverse.lyx.dec
+julesverne.txt
+diverse.lyx
+diverse.txt
+opg6-kompr.lyx
+dekomprimert.fil
 enwik8.txt
 enwik8
 
-# foreløpig bare, tror ikke man skal ignore exec filer
-# dekomprimering 
-# komprimering 
+dekomprimering 
+komprimering 
 
-# Outputfiler
+navn.txt
+ø5g1.txt
+ø5g2.txt
+ø5g3.txt
+ø5g5.txt
+ø5g7.txt
+ø5Skandinavia-navn.txt
+
+
+.vscode
+
+# exec
+malloc
+pointers
+Oving2
+sort_oppg_2
+Oving4Del1
+Oving4Del2
+
+
 
 # Mac
 .DS_Store
