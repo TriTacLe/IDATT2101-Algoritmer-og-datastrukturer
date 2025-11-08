@@ -29,6 +29,9 @@ public class Main{
     }
   }
 
+  
+
+
   private static InteressePunkter getInteressepunkter(int code){
     if((code &  1)== 1){
       return InteressePunkter.STEDSNAVN;
