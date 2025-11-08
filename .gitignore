@@ -5,6 +5,8 @@ interessepkt.txt
 islandNoder.txt
 islandKanter.txt
 islandInteressepkt.txt
+.csv
+*.bin
 
 *.class 
 # Oving 6
