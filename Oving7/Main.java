@@ -67,9 +67,6 @@ public class Main{
     }
   }
 
-  static int[] dijktra(int totalNodes, List<Edge> edges, Node srcNode){
-    return 
-  }
 
   private static InteressePunkter getInteressepunkter(int code){
     if((code &  1)== 1){
