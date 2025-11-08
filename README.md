@@ -10,4 +10,7 @@ Stor takk til **@shaktios** og **@MagnusNaessanGaarder** for sterkt bidrag i øv
 
 Vi oppnådde en **komprimeringsrate på 94,5 %** i den oppgaven og forhåpentligvis 3/3.
 
+Selve prestasjonen til **@shaktios** var så majestetisk ble han headhuntet til øving 7 også og ledet prosjektet .
+
 ---
+

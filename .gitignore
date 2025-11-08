@@ -6,6 +6,11 @@ islandNoder.txt
 islandKanter.txt
 islandInteressepkt.txt
 
+.csv
+*.bin
+
+
+
 *.class 
 # Oving 6
 output.komprimert.deflate
@@ -260,3 +265,11 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 Oving5/ø5Skandinavia.txt
+
+Oving7/altprepos.bin
+*.bin
+Oving7/*.csv
+
+Oving7/altprepos.bin
+*.bin
+Oving7/*.csv
