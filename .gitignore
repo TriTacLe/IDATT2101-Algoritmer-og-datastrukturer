@@ -262,3 +262,7 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 Oving5/ø5Skandinavia.txt
+
+Oving7/altprepos.bin
+*.bin
+Oving7/*.csv
