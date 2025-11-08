@@ -16,5 +16,5 @@ run: $(TARGET)
 clean:
 	rm -f $(TARGET) 
 
-rmInputFiles:
-	rm -f kanter.txt noder.txt interessepkt.txt
+rmAll:
+	rm -f *.class *.jar *.txt
