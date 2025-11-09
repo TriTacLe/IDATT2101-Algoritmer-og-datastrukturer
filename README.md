@@ -12,5 +12,6 @@ Vi oppnådde en **komprimeringsrate på 94,5 %** i den oppgaven og forhåpentlig
 
 Selve prestasjonen til **[Shakti Om Sharma](https://github.com/shaktios)** var så majestetisk ble han headhuntet til øving 7 også og var teamlead i prosjektet.
 **[Magnus Naessan Gaarder](https://github.com/MagnusNaessanGaarder)** var desverre opptatt med å jakte snowbunnies som er meget forståelig 
+
 ---
 
