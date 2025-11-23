@@ -1,0 +1,921 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{tgtermes}
+\usepackage{moresize}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[a4paper, total={200mm, 285mm}]{geometry}
+\usepackage{float}
+\usepackage{indentfirst}
+\usepackage{multicol}
+\usepackage[font=tiny]{caption}
+\usepackage{graphics}
+\usepackage{listings}
+\usepackage{amsmath} 
+\usepackage{amssymb}
+
+% \usepackage{draftwatermark}
+% \SetWatermarkText{Tri Tac Le}
+% \SetWatermarkScale{1}
+
+% Moderne fargepalett
+\definecolor{primaryblue}{RGB}{25, 60, 110}      % Hovedoverskrifter
+\definecolor{accentteal}{RGB}{0, 120, 120}       % Underoverskrifter
+\definecolor{warmamber}{RGB}{180, 100, 0}        % Varme aksenter
+\definecolor{lightgray}{RGB}{240, 240, 240}      % Bakgrunn for kode
+\definecolor{darkgray}{RGB}{50, 50, 50}          % Kode tekst
+\definecolor{mGreen}{RGB}{0, 128, 0}
+\definecolor{mPurple}{RGB}{128, 0, 128}
+\definecolor{mGray}{RGB}{100, 100, 100}
+\definecolor{sectionbg}{RGB}{235, 245, 255}      % Lys bakgrunn for seksjoner
+
+% Kommando for hovedoverskrifter med bakgrunn
+\newcommand{\mainsection}[1]{%
+    \noindent\colorbox{sectionbg}{\makebox[\linewidth][l]{\textcolor{primaryblue}{\textbf{#1}}}}
+}
+
+% Kommando for underoverskrifter
+\newcommand{\subsectiontitle}[1]{%
+    \noindent\textcolor{accentteal}{\textbf{#1}}
+}
+
+% Kommando for små detaljer
+\newcommand{\detailtitle}[1]{%
+    \textcolor{warmamber}{\textit{#1}}
+}
+
+% Kommando for kompleksitet
+\newcommand{\complexity}[1]{%
+    \textcolor{primaryblue}{\textbf{#1}}
+}
+
+\begin{document}
+\begin{multicols}{4}
+{\fontsize{8}{8}\selectfont
+
+% ----- starten av dokumentetet
+
+\mainsection{Tidskompleksitet}
+\vspace{2pt}
+
+\noindent
+$O$ øvre grense. $\Omega$ nedre grense. $\Theta$ øvre og nedre grense, om de er like. 
+
+\detailtitle{Noen regler:}
+\vspace{-7pt}
+\begin{lstlisting}[
+    backgroundcolor=\color{lightgray},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=C,
+    basicstyle=\fontsize{4.5}{8}\selectfont,
+    mathescape=true,
+    frame=single,
+    rulecolor=\color{accentteal}
+]
+for (i=0; i<n; i+=k); // $\Theta(n/k)$
+for (i=0; i<n; i*=k); // $\Theta(log_k n)$
+for (i=0; i<n/k; i++); // $\Theta(n/k)$
+for (i=j; i>0; i/=k); // $\Theta(log_k j)$
+for (i=j; i>n; i/=k); // $\Theta(log(j/n))$
+for (i=0; i<n; i++){
+    for (j=i; j<n; j++);} // $\Theta(n^2)$ 
+for (i=0; i<n; i++){
+    for (j=0; j<i; j++)} // $\Theta(n^2)$ 
+\end{lstlisting}
+
+\vspace{3pt}
+\subsectiontitle{Rekursjon:} Bruker \textit{mestermetoden} for å finne tidskompleksitet til rekursive algoritmer. 
+
+\noindent $T(n) = a \cdot T(n/b) + cn^k$
+
+\noindent $a$: antall rekursive kall, $b$: brøkdelen av datasetter vi behandler i et rekursivt kall. $cn^k$: kompleksitet utenfor rekursjonen. 
+
+\noindent 1. $b^k < a \rightarrow T(n) \in \Theta (n^{log_b a})$
+
+\noindent 2. $b^k = a \rightarrow T(n) \in \Theta (n^k \cdot log(n))$
+
+\noindent 3. $b^k > a \rightarrow T(n) \in \Theta (n^k)$
+
+\vspace{-7pt}
+\begin{lstlisting}[
+    backgroundcolor=\color{lightgray},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=java,
+    basicstyle=\fontsize{4.5}{8}\selectfont,
+    frame=single,
+    rulecolor=\color{accentteal}
+]
+sum(int[] arr, int l, int r) {
+    int m = (l + r) / 2;
+    return sum(arr, l, m) + sum(arr, m+1, r);
+}
+\end{lstlisting}
+\vspace{-7pt}
+\noindent
+$T(n) = 2 \cdot T(n/2) + c \cdot n^0$
+$T(n) = \Theta(n^{log_22}) = \Theta(n)$
+
+\vspace{2pt}
+\subsectiontitle{Lineær rekursjon:}
+Hvis rekursjonsvariabelen minker med $(n - 1)$ (antar $a=1$) får vi $T(n-1) + cn^k \in \Theta(n + cn^k)$
+
+\vspace{3pt}
+\noindent\rule{\linewidth}{0.5pt}
+\mainsection{---Sorteringsalgoritmer---}
+\noindent\rule{\linewidth}{0.5pt}
+
+\vspace{2pt}
+\subsectiontitle{Innsetting-:}
+
+\begin{lstlisting}[
+    backgroundcolor=\color{lightgray},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=java,
+    basicstyle=\fontsize{4.5}{8}\selectfont,
+    frame=single,
+    rulecolor=\color{accentteal}
+]
+innsettingssort([]arr){
+    for (i = 1; i < arr.length; i++) {
+        key = arr[i];
+        j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j+1] = arr[j];  // Flytt bakover
+            j--;
+        }
+        arr[j+1] = key;  // Sett inn riktig plass
+    }
+}
+\end{lstlisting}
+
+\noindent Går gjennom arrayet element for element. For hvert element, flytt det bakover til riktig sortert posisjon blant de allerede sorterte elementene. 
+
+\detailtitle{Pros:} Rask for små datasett eller delvis sorterte data: $\Omega(n)$. 
+
+\detailtitle{Cons:} Treg på store, usorterte datasett: $O(n^2)$ om betingelsen slår til hver gang. Mye flytting av data.
+
+\vspace{2pt}
+\subsectiontitle{Boble-:}
+
+\begin{lstlisting}[
+    backgroundcolor=\color{lightgray},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=java,
+    basicstyle=\fontsize{4.5}{8}\selectfont,
+    frame=single,
+    rulecolor=\color{accentteal}
+]
+boblesort([]arr){
+    for (i = 0; i < arr.length; i++) {
+        for (j = 0; j < i; j++) {
+            if (arr[j] > arr[j+1]) {
+                bytt(arr, j, j+1)
+            }
+        }
+    }
+}
+\end{lstlisting}
+
+\noindent Går gjennom arrayet $n-1$ ganger. Hver iterasjon, sammenlignes naboelementer og byttes hvis de er i feil rekkefølge. Største tallet "synker" til sisteplass i tabellen i første iterasjon, mens små tall "bobler" opp. I neste iterasjon er det ikke nødvendig å ta med det siste tallet, så hver iterasjon blir ett tall kortere. Treg på store datasett. Mange sammenligninger og bytter selv på nesten sorterte data. \complexity{$\Theta(n^2)$}.
+
+\vspace{2pt}
+\subsectiontitle{Velge-:}
+
+\begin{lstlisting}[
+    backgroundcolor=\color{lightgray},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=java,
+    basicstyle=\fontsize{4.5}{8}\selectfont,
+    frame=single,
+    rulecolor=\color{accentteal}
+]
+velgesort(int[] arr){
+    for (int i = 0; i < arr.length - 1; i--){
+        int maxIdx = 0;
+        for (int j=1; j <= i; j++){
+            if (arr[j] > tall[maxIdx]){
+                maxIdx = j
+            }
+        }
+        if (maxIdx!=i) bytt(arr, i, maxIdx);
+    }
+}
+\end{lstlisting}
+
+\noindent Finn største verdi, bytt den inn på plass $n-1$. Bytt nest største inn på plass $n-2$. Fortsett slik til vi har byttet nest minste inn på plass $1$. Gjør like mange sammenlikninger som boblesortering, men færre ombyttinger. Velgesortering bytter om tall maksimalt én gang for hvert iterasjon av den ytre løkka. \complexity{$\Theta(n^2)$}
+
+\vspace{2pt}
+\subsectiontitle{Kvadratiske sorteringsalgoritmer:} Sortere ved å bytte nabotall (algo ovenfor) er \complexity{$\Omega(n^2)$}.
+
+\vspace{2pt}
+\subsectiontitle{Shell-:}
+
+\begin{lstlisting}[
+    backgroundcolor=\color{lightgray},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=java,
+    basicstyle=\fontsize{4.5}{8}\selectfont,
+    frame=single,
+    rulecolor=\color{accentteal}
+]
+shellsort([]arr) {
+    gap = arr.length / 2;
+    while(gap > 0){
+        for(i = gap; i<arr.lenght;++i){
+            int j = i, temp = arr[i];
+            while(j >= gap && temp < arr[j-gap]) {
+                arr[j] = arr[j - gap];
+                j -= gap;
+            }
+            arr[j] = temp;
+        }
+        gap = (gap == 2) ? 1 : (int)(gap / 2.2);
+    }
+}
+\end{lstlisting}
+
+\noindent Optimalisert innsettingssortering. Sorterer elementer som er langt fra hverandre først (\textit{gap}), deretter reduseres \textit{gap} gradvis til 1. Siste runde er vanlig innsettingssortering på nesten sortert tabell. Mellom \complexity{$O(n^\frac{7}{6}) - O(n^\frac{5}{4})$}. 
+
+\detailtitle{Hvorfor?} I shellsort har vi en \textit{gap}-verdi. Denne verdien er først $\textit{gap} = \frac{\text{tabellstorrelse}}{2}$. \textit{gap} bestemmer hvor store steg sammenlikningen i sorteringen er. Hvis \textit{gap} er 1 vil det bli en helt lik algoritme som insettingssortering. Tidskompleksiteten avhenger veldig av hvordan gap senkes fra n/2 til 1. Hvis \textit{gap} senkes med 2 for hver steg, da blir tidskompleksiteten $O(n^\frac{3}{2})$. Hvis \textit{gap} er 2.2 (Knuth-sekvensen - en god optimalisering, bedre enn 2) blir tidskompleksiteten merkelig. 
+
+\vspace{2pt}
+\subsectiontitle{Flette-:}
+
+\begin{lstlisting}[
+    backgroundcolor=\color{lightgray},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=java,
+    basicstyle=\fontsize{4.5}{8}\selectfont,
+    frame=single,
+    rulecolor=\color{accentteal}
+]
+flettesort([]arr, v, h) {
+    if (v < h) {
+        m = (v + h) / 2;
+        flettesort(arr, v, m);
+        flettesort(arr, m + 1, h);
+        flett(arr, v, m, h); // Flett sammen
+    }
+}
+
+flett([]arr, v, m, h) {
+    []ht = new int[h - v + 1];
+    i = 0, j = v, k = m + 1;
+    while (j <= m && k <= h) {
+        ht[i++] = (t[j] <= t[k]) ?
+        arr[j++] : arr[k++];
+    }
+    while (j <= m) ht[i++] = t[j++];
+    for (i = v; i < k; ++i) t[i] = ht[i - v];
+}
+\end{lstlisting}
+
+\noindent Består av to metoder: Rekursive flettesort, som gjør oppdelingen, metode som slår sammen sorterte lister. Deler tabellen rekursivt inn i to halvparter (to deltabeller), til hvert deltabell har 1 element. Så "flettes" de sorterte deltabellene sammen til en sortert tabell. \complexity{$\Theta(n~log~n)$}. Tregere enn quicksort (mer overhead), ikke adaptiv til delvis sorterte data.
+
+\vspace{2pt}
+\subsectiontitle{Quick-:}
+
+\begin{lstlisting}[
+    backgroundcolor=\color{lightgray},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=java,
+    basicstyle=\fontsize{4.5}{8}\selectfont,
+    frame=single,
+    rulecolor=\color{accentteal}
+]
+quicksort([] arr, low, high){
+    if ((high - low) > 2){ 
+        int pivot = partition(arr, low, high);  
+        quicksort(arr, low, pivot - 1);
+        quicksort(arr, pivot + 1, high);
+    } else {
+        median3sort(arr, low, high);
+    }
+}
+partition([] arr, low, high){
+    int m = median3sort(arr, low, high);  
+    int pivot = arr[m];  
+    bytt(arr, m, high - 1); // flytt pivot
+    int i = low, j = high - 1;
+    
+    while(true) {
+        while(arr[++i] < pivot){}  
+        while(arr[--j] > pivot){}  
+        if (i >= j) break;
+        bytt(arr, i, j);
+    }
+    bytt(arr, i, high - 1); // Pivot endelig
+    return i;
+}
+int median3sort([] arr, low, high){
+    int m = (low + high) / 2;
+    if(arr[low] > arr[m]) bytt(arr, low, m);
+    if(arr[m] > arr[high]) bytt(arr, m, high);
+    if(arr[low] > arr[m]) bytt(arr, low, m);
+    return m;
+}
+\end{lstlisting}
+
+\noindent Velger pivot med \textit{median3sort} (enten medianen, venstre endepunkt eller høyre endepunkt), deler tabellen i to med \textit{partition} slik at elementer mindre enn pivot er til venstre og større til høyre. NB: deler ikke nødvendigvis på midten. median3sort flytter m, low og high slik at de står riktig sortert i forhold til hverandre. De to deltabellene sorteres hver for seg med rekursiv bruk av \textit{quicksort}. Stopper rekursjonen når vi har 3 elementer igjen og bruker \textit{median3sort}. 
+
+\detailtitle{Feller:} 1. Dårlig pivot gir $n^2$ kjøretid (f.eks. hvis vi har en sortert tabell og velger det første elementet som pivot). 2. For dyp rekursjon (fix: f.eks. med å stoppe før rekursjonen blir for dyp og sortere resten med f.eks. innettingsortering eller heapsort). 3. $n^2$ kjøretid ved sortering av duplikater. 4. Skjevdeling med 0 og n elementer gir uendelig løkke. Unngås med \textit{median3sort} som garanterer minst ett element på hver side. \complexity{$\Theta(n~log~n)$}
+
+\vspace{2pt}
+\subsectiontitle{Dual pivot quicksort:} To delingstall $p_1,p_2$ der $p_1<p_2$. Fordel tallene i tre grupper istedenfor to; 1. De som er mindre enn $p_1$, 2. De som er $\geq p_1$ og $\leq p_2$, 3. De som er større enn $p_2$. De tre delene sorteres rekursivt. Hvis $p_1 = p_2$ trenger vi ikke å sortere midterste intervallet (alle er like). Litt raskere enn vanlig quicksort, færre sammenligninger, mindre rekursjon. Tre delingstall også mulig - deler tabellen i fire intervaller. Nesten som to rekursjonstrinn av vanlig quicksort. Enda flere pivots er mulig, men, mer komplisert og mer arbeid - vanskeligere å vinne noe. 
+
+\subsectiontitle{Felles} for sorteringsalgoritmer som sammenligner tall med hverandre: \complexity{$\Omega(n\cdot log \text{ }n)$} tid. 
+
+\vspace{2pt}
+\subsectiontitle{Telle-:}
+
+\begin{lstlisting}[
+    backgroundcolor=\color{lightgray},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=java,
+    basicstyle=\fontsize{4.5}{8}\selectfont,
+    frame=single,
+    rulecolor=\color{accentteal}
+]
+tellesortering([] inn, k) { // k storste verdi
+    int n = inn.length;
+    int[] ut = new int[n];       // Sortert output
+    int[] ht = new int[k + 1];   // Hjelpetabell
+    for (int i=0; i<n; i++) ht[inn[i]]++; // 1.
+    for (int i=1; i<=k; i++) ht[i]+=ht[i-1]; // 2
+    for (int i = n - 1; i >= 0; i--) { //3.
+        int tall = inn[i];
+        int posisjon = ht[tall] - 1;
+        ut[posisjon] = tall;
+        ht[tall]--;  // Reduser teller
+    }
+    for (int i = 0; i < n; i++) inn[i]=ut[i];//4
+}
+\end{lstlisting}
+
+\noindent Bruker tre tabeller, \textit{Inn}: inneholder tallene som sorteres, \textit{Ut}: som får tallene i sortert orden \textit{ht}: hjelpetabell som holder orden på hvor mange ganger hvert av tallene i intervallet $0...k$ finnes i \textit{inn} tabellen. Sammenligner ikke tallene og kan ikke sortere alle datatyper. For hvert element i \textit{inn} tabellen finner vi hvor mange elementer vi har som er mindre eller lik det. Med denne informasjonen kan vi plassere elementet på rett plass i \textit{ut} tabellen. Ex: hvis det fins 17 tall mindre enn $x$, setter vi $x$ på 18 plass. 
+
+\detailtitle{Prosess:} 1. Tell forekomster av hvert tall i \textit{ht}. 2. Bygg kumulativ sum i \textit{ht} (gir posisjon for hvert tall). 3. Plasser elementer fra \textit{inn} i \textit{ut} ved å bruke \textit{ht} som indeks, deretter reduser teller i \textit{ht} (håndterer duplikater). Bruker tallene i hjelpetabellen som indeks. Lineær tid: \complexity{$\Theta(n+k)$}. 
+
+\textbf{Når bruke:} Egner seg når tallene ligger tett og er heltall. Hvis tallene er spredt er det kanskje mer $O(n \text{ }log \text{ n})$ algoritmene bedre. Slår $O(n \text{ }log \text{ n})$ hvis $k < n \text{ }log \text{ n}$.
+
+\vspace{2pt}
+\subsectiontitle{Radiks-:}
+Sorterer tall siffer for siffer, fra minst signifikant siffer (enere) til mest signifikant siffer (hundrere, tusener osv). Bruker tellesortering som hjelpealgo for hvert sifferposisjon. \complexity{$\Theta(d \cdot (n+k))$} hvor: d = antall siffer i største tall = $\log_k(max)$, n = antall elementer, k = base (vanligvis 10 for desimaltall). $\Theta(n + k)$ tellesort. 
+
+\textbf{Når bruke:} Tall med få siffer (liten d). Store datasett med begrenset tallområde. Eks: Sortere telefonnumre, postnummer, datoer.
+
+\vspace{2pt}
+\subsectiontitle{Intro-:}
+Hybrid sorteringsalgoritme som starter med quicksort (dele opp og sort rekursivt), bytter til heapsort hvis rekursjonsdybden blir for dyp (max $2 \text{ }log_2\text{ }n$). Når et restintervall er lite nok (typisk 16–50), avslutt med innsettingssortering små deltabeller. Kombinerer det beste fra tre algoritmer. \complexity{$\Theta(n~\log~n)$}
+
+\vspace{3pt}
+\noindent\rule{\linewidth}{0.5pt}
+\mainsection{---Liste, kø, stakk og trær---}
+\noindent\rule{\linewidth}{0.5pt}
+
+\vspace{2pt}
+\subsectiontitle{Liste}: 
+\vspace{-11pt}
+\begin{table}[H]
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{lll}
+\hline
+Operasjon            & Usortert   & Sortert  \\
+\hline
+Lage                 & O(1)       & O(1)     \\
+Finne lengde         & O(1)       & O(1)     \\
+Sette inn            & O(1)       & O(n)     \\
+Fjerne               & O(1)       & O(n)     \\
+Tømme                & O(1)       & O(1)     \\
+Finne på plass       & O(1)       & O(1)     \\
+Søke                 & O(n)       & O(log n) \\
+Traversere           & O(n)       & O(n)     \\
+Finne største        & O(n)       & O(1)     \\
+Sortere              & O(n log n) & -  
+\end{tabular}
+}
+\hline
+\end{table}
+
+\vspace{-11pt}
+\subsectiontitle{Enkel og dobbelt lenketliste}:
+\vspace{-11pt}
+\begin{table}[H]
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{lll}
+\hline
+Operasjon            & Enkel   & Dobbel med hale  \\
+\hline
+Lage                 & O(1)       & O(1)     \\
+Finne lengde         & O(1)       & O(1)     \\
+Sette inn            & O(1)/O(n)  & O(1)     \\
+Fjerne               & O(n)       & O(1)     \\
+Finne på plass       & O(n)       & O(n)     \\
+Søke                 & O(n)       & O(n) \\
+Traversere           & O(n)       & O(n)     \\
+Finne største        & O(n)       & O(n)     \\
+Sortere              & O(n^2) & O(n log n)      
+\end{tabular}
+}
+\hline
+\end{table}
+
+\vspace{-10pt}
+\subsectiontitle{Kø:} 
+Lineær datastruktur hvor innsetting skjer bakerst og uttak skjer først, \textit{FIFO}. Kan implementeres med array eller lenket liste. \complexity{$O(1)$} for innsetting og fjerning. 
+
+\detailtitle{Sirkulær kø:} Bruker formelen $\text{indeks} = (\text{indeks}+1) \% \text{kapasitet}$ for både front og back posisjon, hvor kapasitet er arrayets maksimale størrelse. Dette gjør køen sirkulær, når back når slutten av arrayet, "wrapper den rundt" til starten. Siste posisjon kobles til første posisjon, slik at arrayet behandles som en sirkel. Unngår problemet med "tapt plass" foran i vanlige array-køer, siden vi gjenbruker ledig plass uten å måtte flytte elementer.
+
+\vspace{2pt}
+\subsectiontitle{Stakk:} 
+Lineær datastruktur der innsetting og uttak skjer fremst. \textit{LIFO}. To måter å implementere en kø på: tabell eller linked list. \complexity{$O(1)$} for innsetting og fjerning. Søk \complexity{$O(n)$}
+
+\vspace{2pt}
+\subsectiontitle{Trær:}
+
+\includegraphics[width=5cm]{images/binærtre.png}
+
+\detailtitle{Traversering:}
+Gå gjennom og evt gjøre med alle nodene i et tre. Fire måter: 
+
+1 \textit{Preordentravasering}: Først noden vi har funnet. Så dens venstre subtre, til slutt dens høyre subtre. 
+
+2 \textit{Innordentravasering}: Først venstre subtre, så noden, så høyre subtre. 
+
+3 \textit{Postordentravasering}: Først venstre subtre, så høyre subtre, til slutt noden selv. 
+
+4 \textit{Nivåordnettravasering}: Behandler nodene i ett nivå før alle nodene på neste nivå. Må bruke en kø. Legger først rota i køen og tar den ut og behandler den, så legges rotas barn i køen, så disse nodenes barn, osv.
+
+\vspace{2pt}
+\detailtitle{Binært søketre:}
+
+\includegraphics[width=4.5cm]{images/binærsøketre.png}
+
+Enten et tomt tre, eller et binærtre der: Hver node har en nøkkelverdi, alle nøkler i venstre subtre < nodens nøkkel, alle nøkler i høyre subtre > nodens nøkkel. 
+
+\detailtitle{Innsetting:} Start ved roten, sammenlign ny verdi med noden: Hvis mindre → gå til venstre barn, hvis større → gå til høyre barn, gjenta helt til vi finner en node som mangler det barnet vi skulle ha gått videre til og setter noden inn her. 
+
+\detailtitle{Søk:} Start ved roten, sammenlign søkeverdi med noden: Hvis lik → funnet! Returner noden, hvis mindre → gå til venstre barn, hvis større → gå til høyre barn, gjenta til du finner verdien. Hvis vi kommer til node uten barnet vi skulle gått videre til returnerer vi NULL (nøkkelverdien finnes ikke). 
+
+\detailtitle{Sletting:} Tre tilfeller avhengig av antall barn: 
+
+\textbf{0 barn} (løvnode): Fjern noden og sett forelderens peker til NULL. 
+
+\textbf{1 barn}: Koble forelderen direkte til nodens barn (hopp over noden som skal slettes).
+
+\textbf{2 barn}: Finn successor (minste verdi i høyre subtre). Erstatt nodens verdi med successor-verdien. Slett successor-noden (som har maks 1 barn). 
+
+\detailtitle{Kjøretid:} De fleste operasjoner i BST følger én sti fra rot til en node, og kompleksitet blir derfor \complexity{$O(h)$} hvor h er høyden. I et balansert tre er høyden $O(log n)$, mens i et ubalansert tre kan høyden være $O(n)$ i verste fall. Dette gjør høyden til den mest kritiske faktoren for ytelsen. 
+
+\detailtitle{Kjøretid søk og insetting:} Innsetting og søk er proporsjonalt med høyden. I verste tilfelle er $h = n$ når treet degenerer til en lenket liste og vi får $O(n)$. I beste fall når treet er perfekt balansert blir $h = log n$, og vi får $O(log n)$, der $n$ er antall noder. Noder i et perfekt tre blir alltid $n = 2^{h+1}-1$. Sletting består av to faser: først må vi finne noden $O(h)$, deretter utføre selve slettingen. For noder med 0 eller 1 barn er sletting $O(1)$ etter at noden er funnet. For noder med 2 barn må vi i tillegg finne successor, som tar $O(h)$ tid. 
+
+\detailtitle{Kjøretid annet:} Dybde er worstcase nederste noden, $O(h)\approx O(logn)$. Høyde sjekker alle noder, $\Theta(n)$. Traversering går igjennom alle noder, dermed $\Theta(n)$.
+
+\vspace{2pt}
+\detailtitle{B-trær:}
+Ikke binære søketrær optimalisert for systemer som leser og skriver store datablokker (databaser, filsystemer). Hver node kan ha mange barn og inneholde flere nøkler. 2 lister[barn,nøkler]. Alle løvnoder er på samme nivå (alltid balansert). Indre noder har mellom $n - 1$ og $2n - 1$ nøkler. Rota har fra $1$ til $2n - 1$ nøkler.
+
+\vspace{3pt}
+\noindent\rule{\linewidth}{0.5pt}
+\mainsection{---Heap og prioritetskø---}
+\noindent\rule{\linewidth}{0.5pt}
+
+\vspace{2pt}
+\subsectiontitle{Heap:}
+Komplett binærtre hvor hver node inneholder en nøkkel. To typer: \textit{max-heap} og \textit{min-heap}. 
+
+\textbf{Max-heap:} Hver node $\geq$ begge barn. 
+
+\textbf{Min-heap:} Hver node $\leq$ begge barn (\textit{heapegenskapen}). 
+
+\detailtitle{Komplett binærtre:} alle nivåer fylt, nederste fylles fra venstre. Representeres som tabell: rot i indeks 0, neste nivå i 1 og 2 osv. For node $i$: forelder = $\lfloor(i-1)/2\rfloor$, venstre barn = $2i+1$, høyre barn = $2i+2$. 
+
+Brukes til: (1) sortering (heapsort), (2) prioritetskø. 
+
+\detailtitle{Prioritetskø:} tar alltid ut element med høyest prioritet (ikke FIFO). Max-heap brukes: rot har høyest prioritet. Ta ut: \complexity{$O(1)$} (bare hent rot). Innsetting og sletting: \complexity{$O(\log n)$}.
+
+\vspace{2pt}
+\subsectiontitle{Heapsort:}
+Sorterer ved å bygge max-heap, deretter gjentatte ganger ta ut største element. 
+
+\detailtitle{Bygge heap:} Start fra indeks $\lfloor n/2 \rfloor - 1$ (siste indre node), gå bakover til rot. For hver node: kall \textit{sink} som flytter noden nedover til riktig posisjon. Tar \complexity{$O(n)$}. 
+
+\detailtitle{Sorter:} Største elementet (rot) bytter med siste elementet i heapen, reduser heap-størrelse med 1 og kaller \textit{sink} på rot (nå siste elementet) for å opprettholde heapegenskapen. Gjentas $n-1$ ganger og tabellen sortert, med største element siste, nest største nest siste, opp til det minste som er først. 
+
+\detailtitle{Sink:} Tar en node som potensielt bryter heapegenskapen og flytter den nedover til riktig posisjon. Sammenligner noden med sine to barn og bytter med det største barnet hvis noden er mindre. Fortsetter rekursivt nedover til noden enten er større enn begge barn eller har nådd bunnen. For hver node må vi gjøre maksimalt $log~$ sammenligninger siden vi går ett nivå om gangen. \complexity{$O(log~n)$} kompleksitet. 
+
+Heapsort er alltid \complexity{$n~log~n$} (forutsigbar). Ikke adaptiv til delvis sorterte data (i motsetning til quicksort). Mange sammenligninger og bytter (tregere enn quicksort) og kan endre rekkefølge på like elementer.
+
+\vspace{3pt}
+\noindent\rule{\linewidth}{0.5pt}
+\mainsection{---Hashtabeller---}
+\noindent\rule{\linewidth}{0.5pt}
+
+\includegraphics[width=5cm]{images/hashtabell.png}
+
+\vspace{2pt}
+\subsectiontitle{Hashtabell:} Tidsforbruk avhenger IKKE av antall data - alltid \complexity{$O(1)$} for write/read. Lastfaktor: $\alpha=\frac{n}{m}$, størrelse $m$, $n$ elementer.
+
+\vspace{2pt}
+\subsectiontitle{Hashfunksjoner:} $h(k)$ Konverterer nøkkel $k$ til indeks i \complexity{$\Theta(1)$} tid. Gode hashfunksjoner gir god spredning, få kollisjoner og er raske å beregne (ofte basert på nøkler som skal hashes). Anbefalt: $\alpha \in 0.7$. Målet er å finne balanse mellom minne (lite ledig plass) og ytelse (lite kollisjoner). 
+
+\detailtitle{Restdivisjon:} $h(k) = h(k)= k \text{ \% } m$. Funker best med $m$ = primtall. Dårlig med $m$ som toerpotens $\to$ $m$ = 256 vil $h$ bare avhenge av de siste $8$ bitsa i $k$(28 = 256). Dårlig hvis m er tierpotens, $h$ avhenger bare av de siste sifrene i $k$. 
+
+\detailtitle{multiplikativ hash:} Gange nøkkel $k$ med konstant $A$ (der $0<A<1$), ta desimaldelen og multipliser med tabellstørrelse $m$: $h(k) = \lfloor m(kA - \lfloor kA \rfloor) \rfloor$. A funker fra som $\frac{\sqrt{5}-1}{2}$. Funker for alle verdier av $m$. Bruker desimaltall, og beregninger med desimaltall er tregere enn heltallsoperasjoner. 
+
+\vspace{2pt}
+\subsectiontitle{Kollisjonshåndtering:} 
+
+\detailtitle{Lenka lister:} Hver plass i tabellen peker til hodet av en lenket liste. Ved insetting (\complexity{$\Theta(1)$}) beregner vi hashverdien og legger elementet til først/sist i lenka listen. Ved søk/sletting beregner vi hashverdien, går til riktig plass i tabellen, søker lineært gjennom lenka listen til vi finner nøkkelen vi vil ha, \complexity{$O(1+\alpha)$} $\to$ \complexity{$\Theta(1)$} hvis $\alpha < 1$. 
+
+\detailtitle{Åpen addressering:} Ved kollisjon, finn en annen ledig plass i tabellen ved å "probe" (undersøke). Alle elementer må ligge i tabellen, $\alpha \leq 1)$. vs. lenka lister: Mindre overhead og god cache-ytelse, men komplisert sletting og verre ytelse ved høy $\alpha$.
+
+\textbf{Lineær probing:} Når kollisjon oppstår sjekker vi neste plass i tabellen, så neste igjen, helt til vi finner en ledig plass. Prøver plassene $i = probe(h(k),j,m)=(h(k)+j) \text{ mod } m$. Ex: Hvis $h(k) = 5$ og plass $5$ er opptatt, prøv $6$, så $7$, så $8$ osv. Problem: \textit{Primær clustering} - elementer samler seg i lange sammenhengende blokker. Dette gjør søk tregere fordi vi må gå gjennom hele klyngen. 
+
+\textbf{Kvadratisk probing:} I stedet for å gå én plass om gangen bruker vi kvadratiske intervaller. Prøver plassene $i = probe(h,j,m)=(h+k_{1}j+k_{2}j^2) \text{ mod } m$ Ex: Hvis $h(k)=5$, prøv $5,6(5+1),9(5+4),14(5+9)...$ Reduserer primær clustering ved å spre elementene mer. Problem: elementer med samme hashverdi følger samme probesekvens. Valg av $k_{1} \text{, } k_{2} \text{ og }m$: Hvis alle tre har en felles faktor, vil ikke probsekvensen komme innom alle indekser. 
+
+\textbf{Dobbel hashing:} $h_1$ gir første posisjonen som prøves, $h_2$ bestemmer steglengden. Prøver $i= probe(h_{1}, h_{2}, j, m)=(h_{1}+jh_{2}) \text{ mod }m)$. 
+
+\textbf{Krav til} $h_{2}(k)$: $h_{2}(k)\ne 0$ $h_{2}(k)$ og $m$ må være relativt prime: ikke ha felles faktorer for noen verdi av $k$. Hvis de har en felles faktor vil ikke probesekvensen gå innom alle posisjonene. $h_{2}(k) \text{ mod }m$ gi ulike tall der $h_{1}(k)$ gir like tall. Krav om ingen felles faktor: $m$ som primtall, bruk $h_1(k)=k \text{ mod }m,~h_{2}(k)=k \text{ mod }(m-1)+1$. $m$ som toerpotens:, bruk multiplaktiv hash og $h_{2}(k)=(2|k|+1) \text{ mod }m$. Dette gir oddetall som er relativt prim med $m$. som er toerpotens. 
+
+\vspace{3pt}
+\noindent\rule{\linewidth}{0.5pt}
+\mainsection{---Uvekta grafer---}
+\noindent\rule{\linewidth}{0.5pt}
+
+\vspace{2pt}
+\subsectiontitle{Graf implementasjon:} 
+
+\detailtitle{Naboliste:} En array av lister hvor hver node har sin egen liste over naboer. Hver indeks i arrayet representerer en node, og verdien er en lenket liste av alle naboer. 
+
+\detailtitle{Nabotabell:} En 2D-tabell av størrelse $n$\texttimes $n$ hvor $n$ er antall noder. Hver celle [i][j] inneholder: 1 (true) hvis det er en kant mellom $i$ og $j$, 0 (false) hvis ingen kant. 
+
+\vspace{2pt}
+\subsectiontitle{BFS:} Start med startnode, marker den som besøkt og legg i kø. Ta ut første node fra køen, besøk alle ubesøkte naboer, marker dem og legg i køen. Gjenta til køen er tom. \complexity{$O(N+K)$}.
+
+\vspace{2pt}
+\subsectiontitle{DFS:} Start med startnode, marker den som besøkt, velg en ubesøkt nabo, gå dit og kjør DFS (rekursjon), hvis ingen ubesøkte naboer, backtrack. Gjenta til alle noder er besøkt. \complexity{$O(N+K)$}. 
+
+\vspace{2pt}
+\subsectiontitle{Topologisk-:} Orde noder i en rettet asyklisk graf, slik at hver kan fa node A $\to$ node B, kommer A før B i sortering. Kan ikke sortere hvis den inneholder sykler. \complexity{$\Theta(N+K)$}. Start med DFS fra tilfeldig node. Hver gang DFS er ferdig med å behandle en node, lenkes den i resultatlista. Arbeid bakover og bruk DFS til å behandle en node, lenk den til resultatlista osv. Reverser resultatlista når DFS er ferdig med grafen. 
+
+\vspace{2pt}
+\subsectiontitle{Sterk sammenhengende komponenter (SCC):} Gruppe noder i en rettet graf der ALLE noder har en vei til alle andre noder. Om grafen har $n$ noder og den kan sorteres topologisk har den null sykler og det er $n$ SCC. Kjør DFS på alle noder i grafen og lagre nodene basert på finish-time i en stack. Noden som blir ferdig sist kommer øverst i stacken. Lag $G^T$ den omvendte grafen. Kjør DFS på $G^T$, start med den som fikk høyest finish-time. Hver DFS i dette steget gir én SCC. \complexity{$\Theta(N+K)$}
+
+\vspace{3pt}
+\noindent\rule{\linewidth}{0.5pt}
+\mainsection{---Vekta grafer---}
+\noindent\rule{\linewidth}{0.5pt}
+
+\vspace{2pt}
+\textbf{\subsectiontitle{Korteiste-vei:}}
+
+\detailtitle{Dijkstra:} Grådig algo og negative kanter går ikke ettersom dijkstra går ut ifra
+at en besøkt node ikke kan ha kortere vei til seg. En node til alle andre. 
+
+\textbf{Komponenter:} dist[$v$] (korteste avstand fra startnode til $v$), visited (behandlede noder), prioritetskø (velger noden med minst dist). 
+
+See dist[startnode] = 0 og dist[alle andre] = $\infty$. Legg noder i prioritetskø. Gjenta: Hent node $u$ med lavest dist[]. For hver nabo v: Hvis dist[u] + kantvekt(u,v) < dist[v]: Oppdater dist[v] = dist[u] + kantvekt(u,v). Med heap: \complexity{$\Theta((N+K)log(N))$}
+
+\vspace{2pt}
+\detailtitle{Bellmann-Ford:} Negativ vekt, så lenge det ikke er en negativ syklus. Gjenta $N-1$ gang: gå igjennom alle kanter og for hver kant: hvis dist[u] + kantvekt(u,v) < dist[v], oppdater dist[v]. Sjekk negative sykler: hvis avstander fortsatt oppdateres fins en negativ sykel. \complexity{$O(V\cdot E)$}
+
+\vspace{2pt}
+\textbf{\subsectiontitle{Minimale spenntrær}} (MST): Tre som har alle noder i grafen, sammenhengende, ingen sykler, $N-1$ kanter, $K\geq N$ og summen av kantvektene er minimal. 
+
+\detailtitle{Kruskals:} Sorter alle kanter etter vekt. Legg til kanter én om gangen om de ikke danner en sykel. Start hver node som sitt eget tre, bruk den billigste kanten for å koble sammen to trær, fortsett til alle noder er koblet sammen. \complexity{$O(K~log~K)$}.
+
+\vspace{2pt}
+\detailtitle{Prims:} Grådig. Start fra en vilkårlig node. Velg den billigste kanten som går fra treet til en ny node. Gjenta til alle noder er med i treet. \complexity{$\Theta(K~\log~n)$}. Ligner Dijkstra, men fokuserer på én kant om gangen i stedet for total distanse fra start. 
+
+\vspace{2pt}
+\textbf{\subsectiontitle{Maksimum flyt:}} transportere mest mulig fra en Kilde (K) til et Sluk (S). For hver kant vises flyt og kapasitet på formen $\text{flyt}/\text{kapasitet}$. 
+
+\textbf{Flytnettverk:} rettet graf hvor hver kant$(n,m)$ har en kapasitet $k(n,m)$. Flyten gjennom kanten kalles $f(n,m)$. 
+
+\textbf{Restnett:} En graf som viser uutnyttet kapasitet i flytnettverket. 
+
+\textbf{Restkapasitet:} Angir hvor mye mer flyt som kan sendes gjennom en kant: $k_r(n,m)=k(n,m)-f(n,m)$. 
+
+\textbf{Flytøkende vei}: en vei fra kilde til sluk der kapasiteten ikke er fullt utnyttet. Vi kan øke flyt langs veien tilsvarende den kanten som har minst restkapasitet. 
+
+\textbf{Flytkansellering}: snu om trengs. 
+
+\textbf{Flaskehals:} kanten med minst restkapasitet langs en flytøkende vei. 
+
+\detailtitle{Ford Fulkerson:} Initialiser flyten til $0$ for alle kanter, finn flytøkende vei og dens flaskehals, send flyt. Gjenta til ingen veier fins. Dårlig veivalg (Ford spesifiserer ikke hvilken vei man skal ta) gir mange iterasjoner. 
+
+\detailtitle{Edmonds Karp:} Bruker BFS for å finne kortest vei fra $K$ til $S$ i restnettet. Mens BFS finner en vei: finn flaskehals, øk flyt langs flaskehalsen, kjør BFS på nytt. \complexity{$O(NK^2)$}. 
+
+\vspace{3pt}
+\noindent\rule{\linewidth}{0.5pt}
+\mainsection{---Dyn. programmering og grådige alg.---}
+\noindent\rule{\linewidth}{0.5pt}
+
+\vspace{2pt}
+\textbf{Optimaliseringsproblem:} problem der vi ønsker å finne den beste løsningen blant mange (MST og kortest vei). 
+
+\textbf{Råkraft:} bregne ALLE muligheter og velge den beste. Kan brukes hvis polynomisk tid, unngås hvis eksponentiell tid. 
+
+\textbf{Splitt og hersk:} deler problemet i mindre delproblemer, løser disse rekursiv og kombinerer løsningene til en samlet løsning. 
+
+\vspace{2pt}
+\subsectiontitle{Dynamisk programmering:} Liger på splitt og hersk, men lagrer løsninger på delprobelemer for å unngå å beregne dem fler ganger. Optimal ved overlappende delproblemer. 
+
+\textbf{Bottom-up:} bygg fra minste til største. 
+
+\textbf{Top-down:} rekursjon med memoisering. Ex: fib
+
+\vspace{2pt}
+\detailtitle{Ryggsekkproblemet:} Vi har $n$ varer, der hver vare har en verdi $p_i$ og vekt $v_i$. Hvordan skal vi få med varer med høyest pris når vi kan bære $V$ vekt? Hvis vi velger en vare vi må løse problemet "få med mest verdi når vekten er $V-v_i$". Når vi velger $v_j$ må vi løse samme problemet 2 ganger til bare med vekt $V - v_i-v_j$ og $V-v_j$. Etter hvert som vi tester flere forskjellige vekter, ser vi at samme problem blir løst flere ganger. 
+
+Lagre verdiene i en 2D tabell: $T[i][j]$ er maksimal verdi man kan bære der $i$ er varer og $j$ er vekt til rådighet. Når vi beregner en ny celle bruker vi tidligere lagrede verdier fra tabellen For hver celle $T[i][j]$ sammenligner vi og velger maks verdi av: 
+
+1 Ta ikke med vare i: Da er verdien $T[i-1][j]$ (cellen rett over). 
+
+2. Ta med vare i: Da er verdien $p_i + T[i-1][j-v_i]$ (pris av vare $i$ + en celle lengre tilbake). $p_i + T[i-1][j-v_1]$ er hva er maks verdi med den vekten vi har igjen etter å ta vare $i$. \complexity{$\Theta(V \cdot n)$}. 
+
+\vspace{2pt}
+\subsectiontitle{Grådige alg.:} Algo som tar det beste valget i øyeblikket uten tanke på helheten. Ex: Prims og kruskals (velg alltid billigst kant), Dijkstra (velg alltid noden med kortest avstand), Huffmann, RLE. 
+
+\vspace{2pt}
+\detailtitle{Huffmannkoding:} La hyppige symboler få korte bitsekvenser og sjelnde symboler få korte bitsekvenser. Ingen kode e prefiks av en annen kode (for dekoding). Beregn frekvens. Lag binærtre for som består av ei rot og lagrer tegnet og frekvensen i rota. Lagrer trærne i prioritetskø der tegn med lavest frekvens kommer først. Finn to nodene med lavest frekvens (to første fra prioritetskøen) og lar trærne være venstre og høyre subtre i ett tre og lar rota få en sekvens som er summen av frekvensene i subtrærne. Dette treet settes i prioritetskøen igjen. Deretter kombineres neste to trærne og fortsetter til treet er laget. Deretter generer man koder: setter 0 på venstre kant og 1 på høyre kant. Koden til hvert symbol: veien fra rot til løvnode.
+
+\vspace{3pt}
+\noindent\rule{\linewidth}{0.5pt}
+\mainsection{---Tekstsøk og datakompresjon---}
+\noindent\rule{\linewidth}{0.5pt}
+
+\vspace{2pt}
+\subsectiontitle{Tekstsøk:}
+
+\detailtitle{Naiv algoritme:} flytter søkeord én posisjon av gangen. Sjekker alle $m$ tegn ved hver posisjon. Dobbeltløkke: ytre for $n-m$ posisjoner, indre for $m$ tegn. Lengde $n$ på tekst man søker i. Lengde $m$ på søkeord. \complexity{$O(n\cdot m)~\Omega(n)$}. 
+
+\detailtitle{Boyer-Moore:} Søk baklengs i søkeordet (fra h til v). Ved mismatch, bruk informasjon til å hoppe langt framover i teksten. Bruker to heuristikker: upassende og passende tegn. Optimalisert med Galil. 
+
+\textbf{Upassende tegn:} Når vi får mismatch ved tegn i teksten, hopp basert på hvor mismatch skjedde: mismatch på siste tegn, flytt $m$ steg, mismatch på nestsiste tegn, flytt $m-1$, mismatch på nestnestsiste, flytt $m-2$, osv. Hvis upassende tegnet faktisk finnes i søkeordet, flytt til neste forekomst av det tegnet. Preprosessering 2D-tabell med (tegn, posisjonen) $\to$ hopplengde. 
+
+\textbf{Passende endelse:} Når man får matchet et suffiks, men mismatch lengre fram. Flytt søkeordet til neste posisjon hvor: Det matchede suffikset forekommer igjen i søkeordet, et prefisk av søkeordet matcher slutten av suffikset, eller ingen matcher $\to$ flytt hele søkeordet forbi. Preprosesser tabell indeks er antall tegn som matchet (suffikslengde) og verdi er hvor langt vi kan flytte. Slår opp begge heuristikkene og bruker regelen som gir lengst flytt. 
+
+\textbf{Galil regel:} Når vi flytter søkeordet kortere enn det vi har allerede matchet oppstår overlapp. Det overlappende området trenger vi ikke sammenligne på nytt da vi vet det allerede matcher. \complexity{$O(n), ~O(n\cdot m) \text{~(uten galil),~} \Omega(n/m)$}. 
+
+\vspace{2pt}
+\subsectiontitle{Datakompresjon}
+
+\detailtitle{Run-length encoding:}
+Erstatter sekvenser av identiske tegn med antall repetisjoner $+$ tegnet og negativ byte for ukomprimerte sekvenser: "AAABC", "[3]A[-2]BC". Dårlig for data med lite repetisjon. 
+
+\vspace{2pt}
+\detailtitle{LZ77:} Erstatter repeterende mønstre med referanse til tidligere forekomster. Bruker search buffer (inneholder data som allerde er prosessert) og look-ahead buffer (data som skal komprimeres neste). Når algo finner match mellom data i look-ahead og search, outputtes en tuple: (hvor langt tilbake, hvor lang match, neste tegn etter match). Ulemper: dårlig på data uten repetisjon. Å se langt bakover gir større sjanse for å finne repetisjoner, men påvirker kjøretid: 1 byte peker 255 tegn bakover, 2 byte, 65536 tegn, osv. \complexity{$O(nm^2)$}, $n$ input lengde, $m$ størrelse på search $+$ lookahead, hvis man tester alle posisjoner. Ex: "hahaha?!" $\to$ "ha[2,4]?!". "ha" har 2 tegn, deretter går vi 2 tilbake og kopierer 4 tegn $\to$ "hahaha". 4 tegn erstattes av én referanse. Tuppel (2,4,?), (0,0,!). 
+
+\vspace{2pt}
+\detailtitle{Deflate:} LZ77 produserer literals (ukomprimerte tegn "?!" ovenfor) og (length,distance,nextChar) koder. nextChar og literals komprimeres med ett huffmanntre, length/distance med et annet.
+
+\vspace{2pt}
+\detailtitle{LZW:} Start med dict som inneholder alle byteverdier $0-255~(2^8=256)$. Les input sekvensielt og finn lengste sekvensen som allerede er i dict. Send ut koden for denne sekvensielt. Legg til sekvensen $+$ neste tegn som ny oppfølging i dict. Gjenta til all data er prosessert. Ex: "ABABABA". Start: dict har $A: 65$, $B: 66$. Les "A" $\to$ send $65$, legg til $\text{"AB"}: 256$. Les "B" $\to$ send $66$, legg til $\text{"BA"}: 257$. Les "AB" (finnes nå) $\to$ send 256, legg til "ABA": 258. Les "ABA" $\to$ send $258$. Komprimert: [65, 66, 256, 258]. Fordel: ingen dict overehead; dict bygges dynamisk under komp/dekomp. Ulempe: dict kan bli stor.
+
+\vspace{2pt}
+\detailtitle{LZW $+$ Huffmann:} LZW produserer sekvens av koder (dict-indekser). Ffrekvensene av disse koder telles opp og komp med huffmann. Mye minnebruk. 
+
+\vspace{2pt}
+\detailtitle{Burrows-Wheeler Transformasjon (BWT):} Organisere tekst så den blir lettere å komprimere: like tegn havner ved siden av hverandre. Ex: "BANANA". 
+
+\includegraphics[width=5cm]{images/bwt.png}
+
+1 Legg til et sluttmarkør på slutten. 2 Lag alle mulige rotasjoner av teksten (flytter markøren fra venstre til høyre). 3. Sorter radene alfabetisk. 4 Resultate er siste kolonnen. 
+
+\vspace{2pt}
+\detailtitle{Move-to-front transofmrasjon (MFT):} Kode om data slik repeterte tegn blir til 0 og nesten repeterte tegn blir til små tall $\to$ lettere å komprimere. Ex: "ABBA" 
+
+\includegraphics[height=3cm]{images/mtf.png}
+
+Initialiserer en tabell som inneholder alle unike tegn i alfabetisk rekkefølge [A,B]. For hvert tegn: finn tegnets posisjon i listen, output posisjon og flytt symbolet fremst i listen. Output: sekvens av tall [0,1,0,1] (posisjoner).
+
+\vspace{2pt}
+\detailtitle{BZIP2:} 1 Run-length coding. 2 Burrows-Wheeler transformasjon (hoveddel som sorterer så vi får mange repetisjoner: "AAABBBCCC". 3 Move-To-Front transformasjon (MFT) som gjør ulike repetisjoner om til nuller: "000100200" 4 Run-length coding igjen. 5 Huffmannkoding. 
+
+\vspace{2pt}
+\detailtitle{Arimetisk komp:} Spesifikk komprimeringsmetode som: representerer hele meldingen som ett enkelt tall i intervallet [0,1), deler opp intervallet basert på sannsynligheten til hver symbol (jo mer sannsynlig jo større del av intervallet får det). Lik, men bedre enn huffmann fordi den bruker brøkdeler av bits per symbol: Hvis "A" har sannsynlighet 0.6 får den 60\% av intervallet. Huffmann bruker hele bits per symbol. Mer kompleks og treg pga. desimaltall. 
+
+\vspace{2pt}
+\detailtitle{Adaptiv komp:} Strategi for kom: lærer og tilpasser seg underveis basert på data. Oppdaterer sin interne modell (sannsynlighet, dict, frekvenser osv) dynamisk under komprimeringen. Både kompressor og dekompressor oppdaterer modellen synkront, så ingen overhead for å sende modellen. Ex: LZ77 (dynamisk innhold i buffer, selv om bufferstørrelsen er fast), LZW (dynamisk dict) MTF (tilpasser liste dynamisk).
+
+\vspace{3pt}
+\noindent\rule{\linewidth}{0.5pt}
+\mainsection{Kompleksitetsklasser og  haltingsproblemet}
+\noindent\rule{\linewidth}{0.5pt}
+
+\vspace{2pt}
+\subsectiontitle{Kompleksitetsklasser:} 
+
+\textbf{P:} Mengden av problemer som kan \textit{løses} og verifiseres i polynomisk tid. Ex: Sortering, kortest vei, max flyt, binærsøk. 
+
+\textbf{NP:} Mengden av problemer hvis \textit{løsningen} kan \textit{verifiseres} i P-tid, men ikke NØDVENDIGVIS løses på P-tid. Alle \textbf{P}-problemer er også \textbf{NP}-problemer, $\text{\textbf{P}}$$\subseteq$$\text{\textbf{NP}}$. Ex: Traveling salesman (TSP), kan noen tall av $n$ heltall summeres til $0$. 
+
+\textbf{Største problemet i datavitenskapen:} Hvis \textbf{P}$=$\textbf{NP}? $\to$ Alle problemer som kan verifiseres raskt, kan også løses raskt. Hvis er \textbf{P}$\ne$\textbf{NP}$\to$ Noen problemer er vanskeligere å løse enn å verifisere. 
+
+\textbf{NP-komplette (NPC) problemer}: de "vanskeligste" problemene i \textbf{NP}. \textbf{NPC}$\subseteq$\textbf{NP}. Kompletthet: hvert problem i \textbf{NP} kan reduseres til hvilket som helst problem i \textbf{NPC} i P-tid. Hvis ÉN NPC-problem kan løses i P-tid $\to$ alle \textbf{NP}-problemer kan løses i P-tid og \textbf{P}$=$\textbf{NP}. Hvis programmet ikke kjører på rimelig tid: er problemet NPC $?$ gi opp å finne en eksakt løsning som er kjappere $:$ Se evt etter en tilnærmet løsning (heuristikker). Ex: TSP, Isomorfi, ryggsekkproblemet, hamiltonsyklus i graf, delsum, komplett subgraf, 3SAT. 
+
+\textbf{NP-hard}: et problem er \textbf{NP}-hardt $\Leftrightarrow$ ethvert \textbf{NP} problem kan reduseres til dette problemet i P-tid. Svar trenger ikke å verifiseres i P-tid. Ex: haltingproblem og optimaliseringsproblem. 
+
+\includegraphics[width=5cm]{images/kompleksitetsklasser.png}
+
+\vspace{2pt}
+\subsectiontitle{Haltingproblemet:} Gitt et program $P$ og input $I$, vil $P$ noen gang avslutte når det kjører med $I$, eller vil det gå i uendelig løkke? 
+
+Anta at vi har et program $H$ som løser haltingproblemet.: $H(P, I)$. $H(P,I)$ returnerer "stopper" hvis $P$ fullfører med input $I$, og "løper evig" hvis $P$ ikke fullfører. 
+
+Vi lager nå et program $Q$ som tar et program $A$ som input og gjør: $Q$ bruker $H$ for å sjekke om $A$ stopper når det får sin egen kildekode som input, altså $H(A,A)$. 
+
+Hvis $H(A,A)$ sier "stopper" $\to$ $Q$ går i uendelig løkke. 
+
+Hvis $H(A,A)$ sier "evig" $\to$ $Q$ stopper. 
+
+\textbf{Paradokset oppstår når vi lar $Q$ analysere seg selv:} Kjør $Q(Q)$, altså $Q$ med sin egen kildekode som input. 
+
+\textbf{To tilfeller:} 
+
+1 $H(Q,Q)$ sier "stopper" $\to$ da vil $Q(Q)$ gå i uendelig løkke $\to$ men da stopper ikke $Q(Q)$! Kontradiksjon. 
+
+2 Hvis $H(Q,Q)$ sier "evig" $\to$ da vil $Q(Q)$ stoppe umiddelbart $\to$ men da løper ikke $Q(Q)$ evig. Kontradiksjon. 
+
+Begge muligheter gir kontradiksjon $\to H$ kan ikke eksistere
+
+\vspace{3pt}
+\noindent\rule{\linewidth}{0.5pt}
+\mainsection{---A* og ALT---}
+\noindent\rule{\linewidth}{0.5pt}
+
+\vspace{2pt}
+\subsectiontitle{Dijsktra opptimalisering:} 
+
+\detailtitle{Stopp i tide} når målnoden plukkes ut av køen, ikke når den finner målnoden (første vei er trenger ikke å være den korteste). Praktisk nytte, men ikke asymptotisk bedre. 
+
+Bedre bruk av \detailtitle{prioritetskø} er å legge inn noder når de oppdages. Et mindre prioritetskø gir mindre arbeid å finne minste (nærmest). $N$: antall noder, $K$: antall kanter. Dijkstras med heap går fra $O((N+K)log N)\to O(\frac{1}{2}(N+K)log \text{ }N)$. Ikke asymptotisk bedre, men en halvering. 
+
+\detailtitle{Fibonacci heap} brukes for å optimalisere Dijkstra. Bedre tid for insert og decrease-key: $O(\log N)\to O(1)$. Forbedret kjøretid 
+for Dijkstra: Vanlig heap: $O((N+K) \log N)$. Fibonacci:$O(N\log N+K)$. Brukes sjeldent da det er masse bokføring (markerte noder, grad-tabell, pekere). Cache: Dårlig minnelokalitet (flere cache miss enn binær heap, mange pekere, fragmentert pga dynamisk heap allokering)
+
+\vspace{2pt}
+\subsectiontitle{$A^*$:} Kombinerer Dijkstra garanterte optimalitet med søk mot mål $+$ heuristikk. 
+
+\detailtitle{$A^*$ vs Dijkstra.} Dijkstra prioriterer noder kun etter avstand fra start til node $n$: $g(n)$ $\to$ søket sprer seg som en ring. $A^*$ prioriterer $g(n)$ $+$ estimert avstand fra $n$ til mål: $h(n)$. Velger hvor total estimert veilengde $f(n) = g(n)+h(n)$ er minst. Mer rettet søk mot målet: områder nærmere målet blir interessante siden $g(n)$ øker, mens $h(n)$ minker, så summen endrer seg lite langs riktig vei. 
+
+Start med startnoden i prioritetskø (prioritet = $f(n)$), hent node med lavest $f(n)$ fra køen, hvis det er målnoden $\to$ ferdig, for hver nabo: oppdatert $g$ og $f$, legg i kø, gjenta. 
+
+\detailtitle{Valg av estimat:} $h$ må være \textit{admissible}: Heuristikken kan være aldri høyere enn faktisk avstand $h^*(n)$. Jo nærmere $h^*(n) \to$ færre noder utforskes. Velger heuristikk basert på problemtype, ex åpen kart: $\sqrt{(x_{1}-x_{2})^2+(y_{1}-y_{2}^2)}$, rettlinja (luftlinje) avstand mellom to punkter. 
+
+\vspace{2pt}
+\subsectiontitle{ALT:} Optimalisert $A^*$, kombinerer heuristikker med landemerker. $A^*$ $\to$ tyngre regning. I noen grafer er det ikke mulig å velge en god $h$ i abstrakte grafer og vi får mer sirkelsøk enn ønsket ellipse. Svar: landemerker og trekantsulikheten! 
+
+\detailtitle{Preprosessering:} velg landemerker $L_i$ og beregn avstander \textit{til} og \textit{fra} alle noder ved å kjør Dijkstra fra hver $L_i$ og på omvendt graf. Lagre alle avstander mellom hver node $v$ og landemerkene: $d(L_i,v)$. For hvert søk: bruk landemerker til å konstruere $h$ vha. triangeluliketen. 
+
+\textbf{Landemerket bak startpunktet:} Triangelulikheten: $\delta(n, m) \geq \delta(L, m) - \delta(L, n)$. $\delta$: distanse mellom to noder, $n$: en node, $L$: landemerket, $m$: målnoden. Hvis $\delta(n,m)$ er mindre enn differansen, må det finnes en kortere vei fra $L$ til $m$ via $n$. Men $\delta(L,m)$ og $\delta(L,n)$ er korteste distanser, funnet med Dijkstras algoritme. Så kortere vei fins ikke og ulikheten er korrekt. Vi har flere landemerker: for hver node $n$, bruk det landemerket som gir høyest estimat. Hvis estimatene blir negative kan vi bruke 0 som estimat. Prioriterer økende avstand til landemerker. 
+
+\textbf{Landemerker etter målet:} Triangelulikheten: $\delta(n, m) \geq \delta(n, L) - \delta(m, L)$. Ulikheten må gjelde (som sist): Hvis $\delta(n,m)$ er mindre enn differansen, må det finnes en kortere vei fra $n$ til $L$ via $m$. Men $\delta(L,m)$ og $\delta(L,n)$ er korteste distanser, funnet med Dijkstras algoritme. Så kortere vei fins ikke og ulikheten er korrekt. $A^*$ prioriterer kortere avstand til landemerker. 
+
+\textbf{Kombinert:}
+Vi bruker både landemerker bak startspunktet, og etter målet. For alle landemerker $L_{x}$ beregner vi: $\delta(L_{x},m)-\delta(L_{x},n)$ og $\delta(n,L_{x})-\delta(m,L_{x})$. $A^*$ bruker den største av alle differansene som estimat for $\delta(n,m)$. 
+
+\textbf{Velge landemerker.} 
+
+\detailtitle{Manuelt:} Velger ut ifra hvordan kartet brukes, men bør være et bak start $+$ et etter mål. 
+
+\detailtitle{Automatisk:} Dijsktra søk fra tilfeldig node. $L_1$ blir den som er lengst unna. Søk fra $L_1, L_2$ blir noden lengst unna $L_1$. Fra $L_2$, velg node med størst sum av avstander til ${L_1,L_2}\to L_3$. Søk fra $L_n,L_n+1$ blir noden hvis sum av avstanderer til tidligere landemerker er størst. 
+
+\detailtitle{Ulempe:} må sjekkes manuelt, risiko for at samme landmerket velges om igjen. 
+
+\detailtitle{Fordel:} Garantert korterste vei (admissible $h$). Rask query: færre noder utforskes enn Dijkstra. Fleksibel: fungerer på ethvert søk etter preprosessering. 
+
+\detailtitle{Ulempe:} Preprosessering: må kjøre mange Dijkstra søk først. $k$ (liten): antall landemerker. Lagring $O(kN)$, mye minne. Statisk: ved grafendringer må preprosesseringen kjøres på nytt. Avhengig av landemerker, dårlig valg av landemerker kan føre til verre kjøretid. For mange landemerker, færrenoder, men mer arbeid per node.
+
+}
+\end{multicols}
+\end{document}
