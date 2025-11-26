@@ -1,6 +1,6 @@
 # Øvinger — IDATT2101 Algoritmer og datastrukturer
 
-Samling av obligatoriske øvingsoppgaver i emnet **IDATT2101 Algoritmer og datastrukturer**.
+Samling av obligatoriske øvingsoppgaver, notater, og eksamensressurser i emnet **IDATT2101 Algoritmer og datastrukturer**.
 
 > **Merk:** Oppgavetekstene har krav om minimal filstruktur og færrest mulig filer. Repoet er derfor bevisst kompakt og kan fremstå noe ustrukturert.
 
@@ -15,4 +15,8 @@ Selve prestasjonen til **[Shakti Om Sharma](https://github.com/shaktios)** var s
 
 ---
 ## A4 eksamenshefte
-Kan inneholde feil, bruk på eget ansvar.
+Kan inneholde feil, bruk på eget ansvar. Basert på eksamensnotater
+## Notater
+Notater fra hver forelesning kronologisk
+## Komplett Kompendium
+Alle notater i ett dokument
