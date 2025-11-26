@@ -14,4 +14,5 @@ Selve prestasjonen til **[Shakti Om Sharma](https://github.com/shaktios)** var s
 **[Magnus Naessan Gaarder](https://github.com/MagnusNaessanGaarder)** var desverre opptatt med å jakte snowbunnies som er meget forståelig 
 
 ---
-
+## A4 eksamenshefte
+Kan inneholde feil, bruk på eget ansvar.
